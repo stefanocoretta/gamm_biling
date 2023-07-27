@@ -10,7 +10,7 @@ f2 <- function(x, o = 1, p = 35) {
 }
 
 ysim <- function(n = 500, scale = 2, o = 1, p = 35) {
-  x <- runif(n)
+  x <- runif(n, max = 0.65)
   e <- rnorm(n, 0, scale)
   f <- f2(x, o, p)
   y <- f + e
