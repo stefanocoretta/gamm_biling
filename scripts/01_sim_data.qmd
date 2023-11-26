@@ -146,6 +146,79 @@ tibble(
 ```
 
 ```{r}
+set.seed(my_seed)
 
+subjs <- 60
+timep <- 9
+reps <- 6
+
+dat2_grid <- expand_grid(
+  subj = 1:subjs,
+  group = c("es", "es_0", "es_1"),
+  vowel = c("i", "u", "a"),
+  rep = 1:reps
+)
+
+subj_int <- rnorm(subjs, 0, 0.15)
+subj_slo <- rnorm(subj, 0, 0.25)
+
+dat2 <- tibble()
+
+for (rown in 1:nrow(dat2_grid)) {
+  # Get current row, group and vowel
+  this_row <- dat2_grid[rown,]
+  this_subj <- this_row$subj
+  this_group <- this_row$group
+  this_vowel <- this_row$vowel
+  
+  # Calculate EUD trajectory
+  if (this_group == "es") {
+    if (this_vowel == "i") {
+      this_eud <- rep(2.25 + subj_int[this_subj], 9)
+    } else if (this_vowel == "u") {
+      this_eud <- rep(2 + subj_int[this_subj], 9)
+    } else if (this_vowel == "a") {
+      this_eud <- rep(1.5 + subj_int[this_subj], 9)
+    }
+    
+    
+  } else if (this_group == "es_0") {
+    if (this_vowel == "i") {
+      this_eud <- 2 + (-0.3 + subj_int[this_subj] - 2)/(1 + (1:timep/2)^(2.5 + subj_slo[this_subj] * 2))
+    } else if (this_vowel == "u") {
+      this_eud <- 1.6 + (-4 + subj_int[this_subj] - 1.6)/(1 + (1:timep/0.5)^(1.5 + subj_slo[this_subj]))
+    } else if (this_vowel == "a") {
+      this_eud <- rep(0 + subj_int[this_subj], 9)
+    }
+    
+    
+  } else if (this_group == "es_1") {
+    if (this_vowel == "i") {
+      this_eud <- 2 + (0.9 + subj_int[this_subj] - 2)/(1 + (1:timep/2)^(2.5 + subj_slo[this_subj]))
+    } else if (this_vowel == "u") {
+      this_eud <- 1.5 + (1 + subj_int[this_subj] - 1.5)/(1 + (1:timep/0.5)^(2.5 + subj_slo[this_subj]))
+    } else if (this_vowel == "a") {
+      this_eud <- rep(1.25 + subj_int[this_subj], 9)
+    }
+  }
+
+  # Add eud to dat2
+  this_row$eud <- list(this_eud)
+  this_trial <- unnest(this_row, eud)
+  this_trial$timep <- 1:timep
+  dat2 <- bind_rows(dat2, this_trial)
+}
+
+dat2 <- dat2 %>%
+  mutate(
+    id = paste(group, subj, rep, sep = ".")
+  )
+```
+
+```{r}
+dat2 %>%
+  ggplot(aes(timep, eud, group = id, colour = group)) +
+  geom_path(alpha = 0.15) +
+  facet_grid(cols = vars(vowel), rows = vars(group))
 ```
 
