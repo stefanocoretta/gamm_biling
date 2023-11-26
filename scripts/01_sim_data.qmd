@@ -112,3 +112,40 @@ Avg. formant values for monolingual English and Spanish speakers
 | English | F1  | 264 (34)   | 783 (155) | 316 (43)  |
 |         | F2  | 2268 (207) | 1182 (152)| 1183 (153)|
 
+```{r}
+#| label: eud
+# https://mycurvefit.com
+
+x <- 1:9
+
+y_esi <- rep(2.25, 9)
+y_esu <- rep(2, 9)
+y_esa <- rep(1.5, 9)
+
+y_es0i <- 2 + (-0.3 - 2)/(1 + (x/2)^2.5)
+y_es0u <- 1.6 + (-4 - 1.6)/(1 + (x/0.5)^1.5)
+y_es0a <- rep(0, 9)
+
+y_es1i <- 2 + (0.9 - 2)/(1 + (x/2)^2.5)
+y_es1u <- 1.5 + (1 - 1.5)/(1 + (x/2)^2.5)
+y_es1a <- rep(1.25, 9)
+```
+
+```{r}
+#| label: eud-plot
+
+tibble(
+  time = rep(x, 9),
+  eud = c(y_esi, y_esu, y_esa, y_es0i, y_es0u, y_es0a, y_es1i, y_es1u, y_es1a),
+  group = rep(c("es", "es_0", "es_1"), each = 9*3),
+  vowel = rep(rep(c("i", "u", "a"), each = 9), 3)
+) %>%
+  ggplot(aes(time, eud, colour = vowel)) +
+  geom_point(size = 3) +
+  facet_grid(cols = vars(group))
+```
+
+```{r}
+
+```
+
