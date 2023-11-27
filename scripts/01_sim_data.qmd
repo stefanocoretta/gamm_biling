@@ -170,35 +170,41 @@ for (rown in 1:nrow(dat2_grid)) {
   this_subj <- this_row$subj
   this_group <- this_row$group
   this_vowel <- this_row$vowel
+  this_int <- rnorm(1, 0, 0.2)
+  this_slo <- rnorm(1, 0, 0.2)
   
   # Calculate EUD trajectory
   if (this_group == "es") {
     if (this_vowel == "i") {
-      this_eud <- rep(2.25 + subj_int[this_subj], 9)
+      this_eud <- rep(2.25 + subj_int[this_subj] + this_int, 9)
     } else if (this_vowel == "u") {
-      this_eud <- rep(2 + subj_int[this_subj], 9)
+      this_eud <- rep(2 + subj_int[this_subj] + this_int, 9)
     } else if (this_vowel == "a") {
-      this_eud <- rep(1.5 + subj_int[this_subj], 9)
+      this_eud <- rep(1.5 + subj_int[this_subj] + this_int, 9)
     }
     
     
   } else if (this_group == "es_0") {
     if (this_vowel == "i") {
-      this_eud <- 2 + (-0.3 + subj_int[this_subj] - 2)/(1 + (1:timep/2)^(2.5 + subj_slo[this_subj] * 2))
+      this_eud <- 2 + (-0.3 + subj_int[this_subj] + this_int - 2) /
+        (1 + (1:timep/2)^(2.5 + (subj_slo[this_subj] + this_slo) * 2))
     } else if (this_vowel == "u") {
-      this_eud <- 1.6 + (-4 + subj_int[this_subj] - 1.6)/(1 + (1:timep/0.5)^(1.5 + subj_slo[this_subj]))
+      this_eud <- 1.6 + (-4 + subj_int[this_subj] + this_int - 1.6) /
+        (1 + (1:timep/0.5)^(1.5 + subj_slo[this_subj]  + this_slo))
     } else if (this_vowel == "a") {
-      this_eud <- rep(0 + subj_int[this_subj], 9)
+      this_eud <- rep(0 + subj_int[this_subj] + this_int, 9)
     }
     
     
   } else if (this_group == "es_1") {
     if (this_vowel == "i") {
-      this_eud <- 2 + (0.9 + subj_int[this_subj] - 2)/(1 + (1:timep/2)^(2.5 + subj_slo[this_subj]))
+      this_eud <- 2 + (0.9 + subj_int[this_subj] + this_int - 2) /
+        (1 + (1:timep/2)^(2.5 + subj_slo[this_subj] + this_slo))
     } else if (this_vowel == "u") {
-      this_eud <- 1.5 + (1 + subj_int[this_subj] - 1.5)/(1 + (1:timep/0.5)^(2.5 + subj_slo[this_subj]))
+      this_eud <- 1.5 + (1 + subj_int[this_subj] + this_int - 1.5) /
+        (1 + (1:timep/0.5)^(2.5 + subj_slo[this_subj] + this_slo))
     } else if (this_vowel == "a") {
-      this_eud <- rep(1.25 + subj_int[this_subj], 9)
+      this_eud <- rep(1.25 + subj_int[this_subj] + this_int, 9)
     }
   }
 
@@ -218,7 +224,22 @@ dat2 <- dat2 %>%
 ```{r}
 dat2 %>%
   ggplot(aes(timep, eud, group = id, colour = group)) +
-  geom_path(alpha = 0.15) +
+  geom_path(alpha = 0.15, linewidth = 1) +
   facet_grid(cols = vars(vowel), rows = vars(group))
+```
+
+```{r}
+dat2 %>%
+  ggplot(aes(timep, eud, colour = group)) +
+  geom_smooth(method = "gam", formula = y ~ s(x, k = 3)) +
+  facet_grid(cols = vars(vowel), rows = vars(group))
+```
+
+```{r}
+dat2 %>%
+  filter(subj == 1, group == "es_0") %>%
+  ggplot(aes(timep, eud, group = id, colour = as.factor(rep))) +
+  geom_path() +
+  facet_grid(cols = vars(vowel))
 ```
 
