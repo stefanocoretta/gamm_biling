@@ -159,8 +159,8 @@ dat2_grid <- expand_grid(
   rep = 1:reps
 )
 
-subj_int <- rnorm(subjs, 0, 0.15)
-subj_slo <- rnorm(subj, 0, 0.25)
+subj_int <- rnorm(subjs * 3, 0, 0.15)
+subj_slo <- rnorm(subjs * 3, 0, 0.25)
 
 dat2 <- tibble()
 
