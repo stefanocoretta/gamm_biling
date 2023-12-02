@@ -1,0 +1,93 @@
+---
+title: "02 Data analysis"
+format: html
+---
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+theme_set(theme_light())
+library(mgcv)
+library(tidygam)
+library(ggeffects)
+my_seed <- 4785
+```
+
+## Read data
+
+```{r}
+dat1 <- readRDS("data/dat1.rds")
+dat2 <- readRDS("data/dat2.rds")
+```
+
+## Data 1
+
+### Score and proficiency (single time point)
+
+Let's start with data from a single time point and let's model score as a function of proficiency.
+
+```{r}
+#| label: dat1-5
+
+dat1_5 <- dat1 %>%
+  filter(time == 5)
+
+dat1_5
+```
+
+
+There are `r length(unique(dat1_5$subj))` subjects. The median score is `r median(dat1_5$score)` with a range between `r min(dat1_5$score)` and `r max(dat1_5$score)`. The median proficiency is `r median(dat1_5$proficiency)` with a range between `r min(dat1_5$proficiency)` and `r max(dat1_5$proficiency)`.
+
+
+
+```{r}
+#| label: dat1-pro-sco-t5
+#| message: false
+
+dat1_5 %>%
+  ggplot(aes(proficiency, score)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth()
+```
+
+```{r}
+#| label: d1-gam-1
+
+d1_gam_1 <- gam(
+  score ~ s(proficiency),
+  data = dat1_5
+)
+
+summary(d1_gam_1)
+```
+
+```{r}
+#| label: d1-gam-1-check
+
+gam.check(d1_gam_1)
+```
+
+```{r}
+predict_gam(d1_gam_1, length_out = 50) %>%
+  plot(series = "proficiency")
+```
+
+```{r}
+d1_lm <- lm(score ~ proficiency, data = dat1)
+summary(d1_lm)
+```
+
+```{r}
+ggpredict(d1_lm, terms = "proficiency") %>% plot()
+```
+
+```{r}
+dat1_5 %>%
+  ggplot(aes(proficiency, score)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", colour = "red") +
+  geom_smooth(method = "gam")
+```
+
