@@ -12,12 +12,15 @@ theme_set(theme_light())
 library(mgcv)
 library(tidygam)
 library(ggeffects)
+library(dagitty)
 my_seed <- 4785
 ```
 
 ## Read data
 
 ```{r}
+#| label: data
+
 dat1 <- readRDS("data/dat1.rds")
 dat2 <- readRDS("data/dat2.rds")
 ```
@@ -70,24 +73,134 @@ gam.check(d1_gam_1)
 ```
 
 ```{r}
+#| label: d1-gam-1-p
+
 predict_gam(d1_gam_1, length_out = 50) %>%
   plot(series = "proficiency")
 ```
 
 ```{r}
+#| label: d1-lm
+
 d1_lm <- lm(score ~ proficiency, data = dat1)
 summary(d1_lm)
 ```
 
 ```{r}
+#| label: d1-lm-p
+
 ggpredict(d1_lm, terms = "proficiency") %>% plot()
 ```
 
 ```{r}
+#| label: d1-gam-lm
+
 dat1_5 %>%
   ggplot(aes(proficiency, score)) +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm", colour = "red") +
   geom_smooth(method = "gam")
+```
+
+### Score by proficiency and time
+
+```{r}
+#| label: dat1-pro-sco
+
+dat1 %>%
+  ggplot(aes(proficiency, score, group = subj)) +
+  geom_path(alpha = 0.5) +
+  geom_point(alpha = 0.5)
+```
+
+```{r}
+#| label: d1-dag
+
+g1 <- dagitty('dag {
+proficiency [exposure,pos="-0.677,-0.105"]
+score [outcome,pos="-0.070,0.385"]
+time [pos="0.529,-0.098"]
+proficiency -> score
+time -> proficiency
+}
+')
+
+exposures(g1) <- "proficiency"
+outcomes(g1) <- "score"
+plot(g1)
+```
+
+```{r}
+#| label: d1-dag-cond
+
+adjustmentSets(g1)
+impliedConditionalIndependencies(g1)
+```
+
+
+```{r}
+#| label: d1-gam-2
+
+d1_gam_2 <- bam(
+  score ~
+    s(proficiency) + s(time) +
+    s(subj, bs = "re") + s(subj, proficiency, bs = "re"),
+  data = dat1
+)
+```
+
+## Data 2
+
+```{r}
+#| label: dat2-plot
+
+dat2 %>%
+  ggplot(aes(timep, eud, group = id, colour = group)) +
+  geom_path(alpha = 0.15, linewidth = 1) +
+  facet_grid(cols = vars(vowel), rows = vars(group))
+```
+
+```{r}
+#| label: prep-dat2
+
+dat2 <- dat2 %>%
+  mutate(
+    group_o = ordered(group, levels = c("es", "es_0", "es_1")),
+    vowel_o = ordered(vowel, levels = c("a", "i", "u")),
+    group_vowel_o = ordered(interaction(group_o, vowel_o))
+  )
+contrasts(dat2$group_o) <- "contr.treatment"
+contrasts(dat2$vowel_o) <- "contr.treatment"
+contrasts(dat2$group_vowel_o) <- "contr.treatment"
+```
+
+```{r}
+#| label: d2-gam
+
+d2_gam <- bam(
+  eud ~
+    group_vowel_o +
+    s(timep, k = 9) +
+    s(timep, by = group_vowel_o, k = 9) +
+    s(timep, subj, bs = "fs", m = 1) +
+    s(timep, subj, by = vowel_o, bs = "fs", m = 1),
+  data = dat2
+)
+```
+
+```{r}
+summary(d2_gam)
+```
+
+```{r}
+predict_gam(
+  d2_gam,
+  length_out = 25,
+  separate = list(group_vowel_o = c("group", "vowel")),
+  exclude_terms = c("s(timep,subj)", "s(timep,subj):vowel_oi", "s(timep,subj):vowel_ou"),
+  values = list(vowel_o = "a")
+) %>%
+  plot(series = "timep", comparison = "vowel") +
+  facet_grid(cols = vars(group))
 ```
 

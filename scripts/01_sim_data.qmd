@@ -224,7 +224,8 @@ for (rown in 1:nrow(dat2_grid)) {
 
 dat2 <- dat2 %>%
   mutate(
-    id = paste(group, subj, rep, sep = ".")
+    id = paste(group, subj, rep, sep = "."),
+    subj = as.factor(paste(group, subj, sep = "_"))
   )
 
 saveRDS(dat2, "data/dat2.rds")
