@@ -12,6 +12,7 @@ library(tidyverse)
 theme_set(theme_light())
 library(mgcv)
 library(tidygam)
+library(dagitty)
 
 dat1 <- readRDS("data/dat1.rds")
 
@@ -80,13 +81,15 @@ Let's first focus on how to model a non-linear effect: here, we can look at the 
 ```{r}
 #| label: gam-1
 
+dat15 <- filter(dat1, time == 5)
+
 # attach the mgcv package
 library(mgcv)
 
 # fit the model
 gam_1 <- gam(
   score ~ s(proficiency),
-  data = dat1
+  data = dat15
 )
 
 ```
@@ -116,9 +119,98 @@ plot(gam_1_preds, series = "proficiency")
 
 summary(gam_1)
 ```
+
 The relevant parts of the summary for the time being are the `Parametric coefficients:` table and the `Approximate significance of smooth terms:` table. The first table contains the estimate of the intercept. This intercept is the same intercept you would get in a linear model: here, the estimate of the intercept is the predicted learning score when proficiency is 0. According to the summary, when proficiency is 0, the learning score is about 25. But what we are really interested in is the effect of proficiency on learning score, rather than the intercept per se.
 
 Information on the effect of proficiency is found in the second table, which contains estimates of the smooth terms. Alas, these estimates don't say much about the effect per se. Rather, they just indicate if the effect is linear or not. More specifically, the `edf` estimate, which stands for Estimated Degrees of Freedom, would be 1 for perfectly linear effects and greater than 1 for non-linear effects. This number tells us nothing about the shape of the effect. The only way to assess this is to plot the model predictions, as we have done above.
 
-In our `gam_1` model, the `edf` for the smooth term over proficiency is 6.37. This is significantly different from 1 (p < 2e-16), thus suggesting that the effect of proficiency is not linear (the `Ref.df`, reference degrees of freedom, and `F` values have the only function of being needed to get a *p*-value).
+In our `gam_1` model, the `edf` for the smooth term over proficiency is 2.9. This is significantly different from 1 (p \< 2e-16), thus suggesting that the effect of proficiency is not linear (the `Ref.df`, reference degrees of freedom, and `F` values have the only function of being needed to get a *p*-value).
 
+If we were to report this model and results, we could write something along the following lines: We fitted a Generalised Additive Model to learning score, with a smooth term over proficiency (to model non-linear effects). According to the model, the effect of proficiency is significantly non-linear (*F* = 16.46, *p* \< 0.0001). Based on the prediction plot, we observe that at lower proficiency, learning scores initially decrease and then start increasing again from about proficiency 0.5.
+
+In the following section we will refit the data now including time point (note that this would be the model to fit in the first place and we have fitted a model only with proficiency for pedagogical purposes).
+
+### Multiple smooth terms
+
+The data `dat1` contains learning and proficiency scores from 200 subjects, taken at 10 time points. The data was simulated so that proficiency increased with time (at different degrees for different speakers). An interesting question is whether learning scores improve with time independently of proficiency, or if proficiency alone is causing learning scores to improve. We can approach with question by applying a statistical method called causal inference, based on directed acyclic graphs (DAGs) theory (a full treatment of this is beyond the scope of the paper. Readers are referred to XXX).
+
+The DAGs in @fig-d1-dag represent the causal relationships between learning scores, proficiency scores and time point in the two scenarios. In (a), time point affects proficiency and proficiency affects learning scores. In other words, time point has a direct effect on proficiency but not on learning scores; learning scores can be predicted from proficiency alone. In (b), on the other hand, time point affects proficiency as in (a) but also learning scores (and proficiency affects learning scores as in (a)). This means that time point affects learning scores in two ways: through its effect on proficiency and directly through its effect on learning scores.
+
+```{r}
+#| label: fig-d1-dag
+#| layout-ncol: 2
+#| echo: false
+
+g1 <- dagitty('dag {
+proficiency [exposure,pos="-0.677,-0.105"]
+score [outcome,pos="-0.070,0.385"]
+time [pos="0.529,-0.098"]
+proficiency -> score
+time -> proficiency
+}
+')
+
+exposures(g1) <- "proficiency"
+outcomes(g1) <- "score"
+plot(g1)
+
+g2 <- dagitty('dag {
+proficiency [exposure,pos="-0.677,-0.105"]
+score [outcome,pos="-0.070,0.385"]
+time [pos="0.529,-0.098"]
+proficiency -> score
+time -> proficiency
+time -> score
+}
+')
+
+plot(g2)
+```
+
+DAGs allow us to make causal statements based on statistical results. In this case, when including both time point and proficiency as predictors in a GAM, time should not have an effect on learning score if scenario (a) is correct (while it should have an effect if scenario (b) is correct). Let's model the data.
+
+```{r}
+#| label: gam-2
+#| cache: true
+
+gam_2 <- gam(
+  score ~ s(proficiency) + s(time) +
+    s(subj, bs = "re"),
+  data = dat1
+)
+```
+
+In `gam_2` we fit a GAM to learning scores `score` with two predictors: a smooth term over proficiency and a smooth term over time point. We also include random effects to account for data from multiple participants. The syntax for random effects in GAMs is different from the syntax in lme4. With `gam()`, we can specify random effects using smooth terms and the `re` (for Random Effects) basis function. Random intercept are added with the syntax `s(ranint, bs = "re")` and random slopes with the syntax `s(ranint, ranslope, bs = "re")`. Here we just add a random intercept by subject for illustration. Let's inspect the model summary.
+
+```{r}
+#| label: gam-2-sum
+
+summary(gam_2)
+```
+
+...
+
+Let's plot the model predictions.
+
+```{r}
+gam_2_preds <- predict_gam(
+  gam_2, length_out = 25,
+  series = "proficiency",
+  exclude_terms = c("s(subj)", "s(subj,proficiency)")
+)
+
+plot(gam_2_preds)
+```
+
+```{r}
+gam_2_preds_t <- predict_gam(
+  gam_2, length_out = 25,
+  series = "time",
+  exclude_terms = c("s(subj)", "s(subj,proficiency)")
+)
+
+plot(gam_2_preds_t) +
+  ylim(20, 45)
+```
+
+## Case study 2: simultaneous vs late bilinguals
