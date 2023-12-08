@@ -15,6 +15,7 @@ library(tidygam)
 library(dagitty)
 
 dat1 <- readRDS("data/dat1.rds")
+dat2 <- readRDS("data/dat2.rds")
 
 ```
 
@@ -214,3 +215,46 @@ plot(gam_2_preds_t) +
 ```
 
 ## Case study 2: simultaneous vs late bilinguals
+
+...
+
+We have simulated phonetic data from three groups of bilinguals: simultaneous English/Spanish bilinguals, beginners late English/Spanish bilinguals and advanced late English/Spanish bilinguals. The data contains the Euclidean Distance (EuD) of three Spanish vowels /a, i, u/ from the vowel space centroid, taken from word-final non-stressed vowels, along 9 equidistant time points. The measure is a good proxy for vowel reduction phenomena, which is to be expected in late bilinguals.
+
+```{r}
+dat2
+```
+
+This is what the data looks like. The top row reports the synthetic data of simultaneous English/Spanish bilinguals (`es`). It can be observed that the Euclidean distance is quite stable across the duration of the vowel for all three vowels and away from 0 (which corresponds to a mid-central vowel), indicating no reduction takes place (as it is to be expected for Spanish).
+On the other hand, in the second and third row, we can see some vowel reduction at play: for /a/, beginners late bilinguals (`es_0`) completely reduce the vowel to a mid-central vowel, while the advanced late bilinguals (`es_1`) reduce it to a lesser degree, but it is still not quite a full Spanish /a/; /i/ and /u/ are produced with a diphthongal quality, where the first part of the vowel is quite reduced. Finally, comparing beginners and advanced bilinguals shows that the latter have less reduction, as expected by increasing proficiency in Spanish.
+
+```{r}
+#| label: fig-dat2
+#| echo: false
+
+dat2 %>%
+  ggplot(aes(timep, eud, group = id, colour = group)) +
+  geom_path(alpha = 0.15, linewidth = 1) +
+  facet_grid(cols = vars(vowel), rows = vars(group))
+```
+
+We can use a GAM to model Euclidean distance along time point in the different vowels and different bilingual groups.
+Fitting smooth terms for different levels of categorical predictors can be achieved by specifying the categorical predictor as the value of the `by` argument inside the smooth term function `s()`: for example `s(timep, by = vowel)` would ensure a non-linear effect of time point is estimated for each vowel. In our data, we want to model the interaction of vowel (/a, i, u/) and group (`es, es_0, es_1`). Unfortunately, classical interactions cannot be model in GAMs (because of the "additive" aspect of the model; interactions require product operations).
+
+To obviate this limitation, we can simply construct a new predictor with the combination of vowel and group and use that as the `by`-variable in the smooth terms.
+
+```{r}
+#| label: gam-3
+
+dat2 <- dat2 %>%
+  mutate(
+    group_vowel = interaction(group, vowel)
+  )
+
+gam_3 <- gam(
+  eud ~
+    s(timep, by = group_vowel, k = 9) +
+    s(timep, subj, by = group_vowel, bs = "fs", m = 1),
+  data = dat2
+)
+```
+
