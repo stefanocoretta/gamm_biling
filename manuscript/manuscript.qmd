@@ -15,6 +15,7 @@ library(tidygam)
 library(dagitty)
 
 dat1 <- readRDS("data/dat1.rds")
+dat2 <- readRDS("data/dat2.rds")
 
 ```
 
@@ -138,7 +139,13 @@ The DAGs in @fig-d1-dag represent the causal relationships between learning scor
 
 ```{r}
 #| label: fig-d1-dag
+#| fig-cap: "Dyrected Acyclic Graphs for time, proficiency and learning score."
+#| fig-subcap:
+#| - "No direct effect of time on learning scores."
+#| - "Direct effect of time on learning scores."
 #| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 1.5
 #| echo: false
 
 g1 <- dagitty('dag {
@@ -193,6 +200,8 @@ summary(gam_2)
 Let's plot the model predictions.
 
 ```{r}
+#| label: gam-2-preds
+
 gam_2_preds <- predict_gam(
   gam_2, length_out = 25,
   series = "proficiency",
@@ -203,6 +212,8 @@ plot(gam_2_preds)
 ```
 
 ```{r}
+#| label: gam-2-preds-t
+
 gam_2_preds_t <- predict_gam(
   gam_2, length_out = 25,
   series = "time",
@@ -214,3 +225,127 @@ plot(gam_2_preds_t) +
 ```
 
 ## Case study 2: simultaneous vs late bilinguals
+
+[LIT REVIEW]
+
+We have simulated phonetic data from three groups of bilinguals: simultaneous English/Spanish bilinguals, beginners late English/Spanish bilinguals and advanced late English/Spanish bilinguals. The data contains the Euclidean Distance (EuD) of three Spanish vowels /a, i, u/ from the vowel space centroid, taken from word-final non-stressed vowels, along 9 equidistant time points. The measure is a good proxy for vowel reduction phenomena, which is to be expected in late bilinguals.
+
+```{r}
+#| label: dat2
+
+dat2
+```
+
+This is what the data looks like. The top row reports the synthetic data of simultaneous English/Spanish bilinguals (`es`). It can be observed that the Euclidean distance is quite stable across the duration of the vowel for all three vowels and away from 0 (which corresponds to a mid-central vowel), indicating no reduction takes place (as it is to be expected for Spanish).
+On the other hand, in the second and third row, we can see some vowel reduction at play: for /a/, beginners late bilinguals (`es_0`) completely reduce the vowel to a mid-central vowel, while the advanced late bilinguals (`es_1`) reduce it to a lesser degree, but it is still not quite a full Spanish /a/; /i/ and /u/ are produced with a diphthongal quality, where the first part of the vowel is quite reduced. Finally, comparing beginners and advanced bilinguals shows that the latter have less reduction, as expected by increasing proficiency in Spanish.
+
+```{r}
+#| label: fig-dat2
+#| echo: false
+
+dat2 %>%
+  ggplot(aes(timep, eud, group = id, colour = group)) +
+  geom_path(alpha = 0.15, linewidth = 1) +
+  facet_grid(cols = vars(vowel), rows = vars(group))
+```
+
+We can use a GAM to model Euclidean distance along time point in the different vowels and different bilingual groups.
+Fitting smooth terms for different levels of categorical predictors can be achieved by specifying the categorical predictor as the value of the `by` argument inside the smooth term function `s()`: for example `s(timep, by = vowel)` would ensure a non-linear effect of time point is estimated for each vowel. In our data, we want to model the interaction of vowel (/a, i, u/) and group (`es, es_0, es_1`). Unfortunately, classical interactions cannot be model in GAMs (because of the "additive" aspect of the model; interactions require product operations).
+
+To obviate this limitation, we can simply construct a new predictor with the combination of vowel and group and use that as the `by`-variable in the smooth terms.
+Due to how smooth terms are constructed when you include a `by`-variable, it is necessary to also include the variable as a parametric term (i.e. a classical linear term).
+
+```{r}
+#| label: dat2-prep
+
+dat2 <- dat2 %>%
+  mutate(
+    vowel = as.factor(vowel),
+    group_vowel = interaction(group, vowel),
+  )
+```
+
+
+```{r}
+#| label: gam-3
+#| eval: false
+
+gam_3 <- gam(
+  eud ~
+    # Parametric term for group_vowel
+    group_vowel +
+    # Smooth term with group_vowel by-variable
+    s(timep, by = group_vowel, k = 9) +
+    # Random factor smooths
+    s(timep, subj, bs = "fs", m = 1),
+  data = dat2
+)
+```
+
+```{r}
+#| label: gam-3-eval
+#| echo: false
+gam_3_path <- "data/gam_3.rds"
+if (file.exists(gam_3_path)) {
+  gam_3 <- readRDS(gam_3_path)
+} else {
+  gam_3 <- gam(
+    eud ~
+      # Parametric term for group_vowel
+      group_vowel +
+      # Smooth term with group_vowel by-variable
+      s(timep, by = group_vowel, k = 9) +
+      # Random factor smooths
+      s(timep, subj, bs = "fs", m = 1),
+    data = dat2
+  )
+  saveRDS(gam_3, gam_3_path)
+}
+```
+
+```{r}
+#| label: gam-3-sum
+
+summary(gam_3)
+```
+
+Let's extract the model predictions and inspect them.
+
+```{r}
+#| label: gam-3-preds
+
+gam_3_preds <- predict_gam(gam_3, exclude_terms = "s(timep,subj)")
+gam_3_preds
+```
+
+The function `predict_gam()` automatically samples 10 equidistant points from numeric variables (like `timep`, based on the default `length_out = 10` argument) and all levels in categorical variables (like `group_vowel`).
+For each combination of the sampled points and levels, the function returns the value of the outcome (`eud`) and the standard error (`se`). The lower (`lower_ci`) and upper (`upper_ci`) boundaries of the 95% Confidence Interval are also returned.
+
+Furthermore, `predict_gam()` returns an object of class `tidygam` which can be plotted with `plot()` (similarly to how `ggpredict()` from the ggeffects package works, XXX).
+However, we might want to do some processing of the predictions before plotting: in particular, we might want to split the `group_vowel` column into the two original variables, `group` and `vowel`. We can achieve this straight from the function. And we might also want to extract more than 10 time points, to get a smoother curve.
+
+```{r}
+#| label: gam-3-preds-2
+
+gam_3_preds_2 <- predict_gam(
+  gam_3,
+  length_out = 25,
+  exclude_terms = "s(timep,subj)",
+  separate = list(group_vowel = c("group", "vowel"))
+)
+gam_3_preds_2
+```
+
+The syntax `list(group_vowel = c("group", "vowel"))` instructs the function to split the `group_vowel` column into two columns, `group` and `vowel`.
+Splitting is done based on the `sep_by` argument, which is `.` by default.
+Now we can plot the predictions.
+
+```{r}
+#| label: fig-gam-3
+#| fig-cap: "Predicted Euclidean distance along the duration of the vowel, for /a, i, u/ in simultaneous bilinguals (es), beginners late bilinguals (es_0) and advanced late bilinguals (es_1)"
+
+gam_3_preds_2 %>%
+  plot(series = "timep", comparison = "group") +
+  facet_grid(cols = vars(vowel))
+```
+
