@@ -15,7 +15,7 @@ my_seed <- 4785
 
 ## Data 1: U-shaped effect
 
-We simulate data of the U-shaped effect of language acquisition. Subjects take a test at 11 time points where they language proficiency is measured and a score value is obtained for how well they have learnt construction C.
+We simulate data of the U-shaped effect of language acquisition. Subjects take a test at 11 time points where their language proficiency is measured and a score value is obtained for how well they have learnt construction C.
 
 ```{r}
 #| label: dat1
