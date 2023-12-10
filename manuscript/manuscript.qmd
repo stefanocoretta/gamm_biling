@@ -2,6 +2,8 @@
 title: "A tutorial on Generalised Additive Mixed Effects Models for bilingualism research"
 format: pdf
 editor: visual
+bibliography: gam_refs.bib
+csl: apa.csl
 ---
 
 ```{r}
@@ -43,7 +45,9 @@ You can find the tutorial code and data here: XXX
 
 ### U-shaped learning
 
-\[Lit review\]
+Research on language acquisition first documented overregularization errors in the 60's [@ervin_miller1963; @cazden1968acquisition]. Subsequent research found that overregularization errors tended to manifest in a developmental curve, and is now referred to as the *U-shaped developmental curve* [@williams2022u]. In most cases, U-shaped development is considered to be a three-step process, which begins with accurate performance, followed by a period in which performance dips, and then subsequently becomes accurate again [@carlucci2013necessity]. Interestingly, U-shaped curves are observed in numerous cognitive-developmental and learning contexts, particularly with regard to child development, e.g., understanding temperature, weight conservation, object permanence, and facial recognition [See @carlucci2013necessity], which, in turn, has fostered fruitful research and debate in Cognitive Science regarding learning models [e.g., @marcus1992overregularization; @rumelhart2014learning, among others].
+
+In first language acquisition research, the most cited example stems from children's use of the past tense [@ervin_miller1963; @cazden1968acquisition; @marcus1992overregularization]. For instance, @cazden1968acquisition found that children accurately produced irregular past tense verbs during a period of time, and, at a later point in time, began to produce overgeneralization errors, e.g., *feet* followed by \**feets*. Eventually past tense production again surfaces as expected, typically around the age of three, which coincides with the developmental stage in which children acquire regular past tense verbs [See @marcus1992overregularization]. In the realm of Second Language Acquisition (SLA), researchers have documented non-linear, U-shaped courses of development in numerous areas for both developmental and instructional sequences [See @kellerman1985if; @long1990least; @shirai1990u; @geeslin2006longitudinal; @pliatsikas2013processing; @casani2020valutare; @williams2022u, among many others]. @kellerman1985if, for instance, documented Dutch learners of English acquiring verb alternation patterns of English following a U-shaped trajectory. In a similar vein, @lightbown1983exploring showed accuracy producing progressive forms (i.e., -ing) followed a U-shaped trajectory when acquiring the simple present/present continuous tense/aspect distinction in French speaking learners of English. U-shaped learning may be a by-product of reorganization or restructuring of prior knowledge [@gass_selinker_2008; @shirai1990u], and likely accounts for language instructors' contention that students often regress when learning new linguistic forms. Be that as it may, it is clear that the non-linear quality of this aspect of language learning requires a non-linear approach to modeling the underlying process.
 
 ### The data
 
@@ -226,7 +230,7 @@ plot(gam_2_preds_t) +
 
 ## Case study 2: simultaneous vs late bilinguals
 
-[LIT REVIEW]
+\[LIT REVIEW\]
 
 We have simulated phonetic data from three groups of bilinguals: simultaneous English/Spanish bilinguals, beginners late English/Spanish bilinguals and advanced late English/Spanish bilinguals. The data contains the Euclidean Distance (EuD) of three Spanish vowels /a, i, u/ from the vowel space centroid, taken from word-final non-stressed vowels, along 9 equidistant time points. The measure is a good proxy for vowel reduction phenomena, which is to be expected in late bilinguals.
 
@@ -236,8 +240,7 @@ We have simulated phonetic data from three groups of bilinguals: simultaneous En
 dat2
 ```
 
-This is what the data looks like. The top row reports the synthetic data of simultaneous English/Spanish bilinguals (`es`). It can be observed that the Euclidean distance is quite stable across the duration of the vowel for all three vowels and away from 0 (which corresponds to a mid-central vowel), indicating no reduction takes place (as it is to be expected for Spanish).
-On the other hand, in the second and third row, we can see some vowel reduction at play: for /a/, beginners late bilinguals (`es_0`) completely reduce the vowel to a mid-central vowel, while the advanced late bilinguals (`es_1`) reduce it to a lesser degree, but it is still not quite a full Spanish /a/; /i/ and /u/ are produced with a diphthongal quality, where the first part of the vowel is quite reduced. Finally, comparing beginners and advanced bilinguals shows that the latter have less reduction, as expected by increasing proficiency in Spanish.
+This is what the data looks like. The top row reports the synthetic data of simultaneous English/Spanish bilinguals (`es`). It can be observed that the Euclidean distance is quite stable across the duration of the vowel for all three vowels and away from 0 (which corresponds to a mid-central vowel), indicating no reduction takes place (as it is to be expected for Spanish). On the other hand, in the second and third row, we can see some vowel reduction at play: for /a/, beginners late bilinguals (`es_0`) completely reduce the vowel to a mid-central vowel, while the advanced late bilinguals (`es_1`) reduce it to a lesser degree, but it is still not quite a full Spanish /a/; /i/ and /u/ are produced with a diphthongal quality, where the first part of the vowel is quite reduced. Finally, comparing beginners and advanced bilinguals shows that the latter have less reduction, as expected by increasing proficiency in Spanish.
 
 ```{r}
 #| label: fig-dat2
@@ -249,11 +252,9 @@ dat2 %>%
   facet_grid(cols = vars(vowel), rows = vars(group))
 ```
 
-We can use a GAM to model Euclidean distance along time point in the different vowels and different bilingual groups.
-Fitting smooth terms for different levels of categorical predictors can be achieved by specifying the categorical predictor as the value of the `by` argument inside the smooth term function `s()`: for example `s(timep, by = vowel)` would ensure a non-linear effect of time point is estimated for each vowel. In our data, we want to model the interaction of vowel (/a, i, u/) and group (`es, es_0, es_1`). Unfortunately, classical interactions cannot be model in GAMs (because of the "additive" aspect of the model; interactions require product operations).
+We can use a GAM to model Euclidean distance along time point in the different vowels and different bilingual groups. Fitting smooth terms for different levels of categorical predictors can be achieved by specifying the categorical predictor as the value of the `by` argument inside the smooth term function `s()`: for example `s(timep, by = vowel)` would ensure a non-linear effect of time point is estimated for each vowel. In our data, we want to model the interaction of vowel (/a, i, u/) and group (`es, es_0, es_1`). Unfortunately, classical interactions cannot be model in GAMs (because of the "additive" aspect of the model; interactions require product operations).
 
-To obviate this limitation, we can simply construct a new predictor with the combination of vowel and group and use that as the `by`-variable in the smooth terms.
-Due to how smooth terms are constructed when you include a `by`-variable, it is necessary to also include the variable as a parametric term (i.e. a classical linear term).
+To obviate this limitation, we can simply construct a new predictor with the combination of vowel and group and use that as the `by`-variable in the smooth terms. Due to how smooth terms are constructed when you include a `by`-variable, it is necessary to also include the variable as a parametric term (i.e. a classical linear term).
 
 ```{r}
 #| label: dat2-prep
@@ -264,7 +265,6 @@ dat2 <- dat2 %>%
     group_vowel = interaction(group, vowel),
   )
 ```
-
 
 ```{r}
 #| label: gam-3
@@ -318,11 +318,9 @@ gam_3_preds <- predict_gam(gam_3, exclude_terms = "s(timep,subj)")
 gam_3_preds
 ```
 
-The function `predict_gam()` automatically samples 10 equidistant points from numeric variables (like `timep`, based on the default `length_out = 10` argument) and all levels in categorical variables (like `group_vowel`).
-For each combination of the sampled points and levels, the function returns the value of the outcome (`eud`) and the standard error (`se`). The lower (`lower_ci`) and upper (`upper_ci`) boundaries of the 95% Confidence Interval are also returned.
+The function `predict_gam()` automatically samples 10 equidistant points from numeric variables (like `timep`, based on the default `length_out = 10` argument) and all levels in categorical variables (like `group_vowel`). For each combination of the sampled points and levels, the function returns the value of the outcome (`eud`) and the standard error (`se`). The lower (`lower_ci`) and upper (`upper_ci`) boundaries of the 95% Confidence Interval are also returned.
 
-Furthermore, `predict_gam()` returns an object of class `tidygam` which can be plotted with `plot()` (similarly to how `ggpredict()` from the ggeffects package works, XXX).
-However, we might want to do some processing of the predictions before plotting: in particular, we might want to split the `group_vowel` column into the two original variables, `group` and `vowel`. We can achieve this straight from the function. And we might also want to extract more than 10 time points, to get a smoother curve.
+Furthermore, `predict_gam()` returns an object of class `tidygam` which can be plotted with `plot()` (similarly to how `ggpredict()` from the ggeffects package works, XXX). However, we might want to do some processing of the predictions before plotting: in particular, we might want to split the `group_vowel` column into the two original variables, `group` and `vowel`. We can achieve this straight from the function. And we might also want to extract more than 10 time points, to get a smoother curve.
 
 ```{r}
 #| label: gam-3-preds-2
@@ -336,9 +334,7 @@ gam_3_preds_2 <- predict_gam(
 gam_3_preds_2
 ```
 
-The syntax `list(group_vowel = c("group", "vowel"))` instructs the function to split the `group_vowel` column into two columns, `group` and `vowel`.
-Splitting is done based on the `sep_by` argument, which is `.` by default.
-Now we can plot the predictions.
+The syntax `list(group_vowel = c("group", "vowel"))` instructs the function to split the `group_vowel` column into two columns, `group` and `vowel`. Splitting is done based on the `sep_by` argument, which is `.` by default. Now we can plot the predictions.
 
 ```{r}
 #| label: fig-gam-3
@@ -349,3 +345,6 @@ gam_3_preds_2 %>%
   facet_grid(cols = vars(vowel))
 ```
 
+{{< pagebreak >}}
+
+# References
