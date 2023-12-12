@@ -1,5 +1,6 @@
 ---
 title: "A tutorial on Generalised Additive Mixed Effects Models for bilingualism research"
+author: Stefano Coretta, Joseph V. Casillas
 format: pdf
 editor: visual
 bibliography: gam_refs.bib
