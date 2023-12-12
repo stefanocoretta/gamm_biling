@@ -21,21 +21,21 @@ dat2 <- readRDS("data/dat2.rds")
 
 ```
 
-## Overview
-
-...
-
 ## Motivation
 
-...
+Quantitative data analysis of linguistic data has seen a massive shift from statistical significance tests and analysis of variance to linear and generalised linear modelling, including models with so-called random effects (also known as hierarchical, mixed-effects, multi-level or nested models) [@winter2013; @winter2020]. Soon after linear models started being more commonly used, a need for models that could handle non-linear effects and were as flexible as linear models led to the adoption of Generalised Linear (Mixed) Models, or GAMMs.
+
+GAMMs are now commonly employed in phonetic research (given the naturally dynamic nature of speech data) and this is reflected by the availability of several tutorials which focus on phonetic data [@soskuthy2017; @soskuthy2021; @wieling2018; @tamminga2016]. This is why we hope that this tutorial will make GAMMs accessible to researchers from other fields within linguistics. In particular, this tutorial is thought for researchers in bilingualism and multilingualism who wish to be able to start using GAMMs for non-linear data, which is very common in developmental and learning phenomena.
 
 ### Generalised additive (mixed) models
 
-...
+Generalised Additive Models (GAMs) and their mixed-effects version (GAMMs) are a generalisation of generalised linear models that can accommodate fitting non-linear models [@hastie1986; @wood2006]. The main component that is specific to GAMMs are smoothers or smooth terms. These are model terms that can fit non-linear effects. An advantage of using smooth terms is that they are constrained by a penalty measure---part of the fitting procedure and does not depend on user input---which prevents over-fitting the data. This approach is different from, for example, growth curve analyses which are based on user-specified polynomial degrees.
+
+Readers interested in a more detailed conceptual discussion of GAMMs are referred to @soskuthy2017. The rest of this tutorial will focus on teaching the basics of GAMMs usage in R. While completing this tutorial will allow you to start-jump into fitting basic GAMMs, we invite interested readers to peruse the tutorials mentioned above to avoid unnecessary repetition of content. Finally, we opted not to treat statistical significance testing in GAMMs, due to its cumbersome nature (significance testing is treated in details in the aforementioned tutorials).
 
 ## Pre-requisites
 
-This tutorial assumes readers are already familiar with R and have at least some experience fitting linear models, including models with random effects (variably known as mixed, hierarchical, nested, multi-level models. The following packages need to be installed:
+This tutorial assumes readers are already familiar with R [@rct2023] and have at least some experience fitting linear models, including models with random effects. The following packages need to be installed:
 
 -   tidyverse
 
@@ -43,7 +43,7 @@ This tutorial assumes readers are already familiar with R and have at least some
 
 -   tidygam
 
-You can find the tutorial code and data here: XXX
+You can find the tutorial code and data here: XXX.
 
 ## Case study 1: U-shaped learning
 
@@ -51,7 +51,7 @@ You can find the tutorial code and data here: XXX
 
 Research on language acquisition first documented over-regularization errors in the 60's [@ervin_miller1963; @cazden1968acquisition]. Subsequent research found that over-regularization errors tended to manifest in a developmental curve, and is now referred to as the *U-shaped developmental curve* [@williams2022u]. In most cases, U-shaped development is considered to be a three-step process, which begins with accurate performance, followed by a period in which performance dips, and then subsequently becomes accurate again [@carlucci2013necessity]. Interestingly, U-shaped curves are observed in numerous cognitive-developmental and learning contexts, particularly with regard to child development, e.g., understanding temperature, weight conservation, object permanence, and facial recognition [See @carlucci2013necessity], which, in turn, has fostered fruitful research and debate in Cognitive Science regarding learning models [e.g., @marcus1992overregularization; @rumelhart2014learning, among others].
 
-In first language acquisition research, the most cited example stems from children's use of the past tense [@ervin_miller1963; @cazden1968acquisition; @marcus1992overregularization]. For instance, @cazden1968acquisition found that children accurately produced irregular past tense verbs during a period of time, and, at a later point in time, began to produce over-generalization errors, e.g., *feet* followed by \**feets*. Eventually past tense production again surfaces as expected, typically around the age of three, which coincides with the developmental stage in which children acquire regular past tense verbs [See @marcus1992overregularization]. In the realm of Second Language Acquisition (SLA), researchers have documented non-linear, U-shaped courses of development in numerous areas for both developmental and instructional sequences [See @kellerman1985if; @long1990least; @shirai1990u; @geeslin2006longitudinal; @pliatsikas2013processing; @casani2020valutare; @williams2022u, among many others]. @kellerman1985if, for instance, documented Dutch learners of English acquiring verb alternation patterns of English following a U-shaped trajectory. In a similar vein, @lightbown1983exploring showed accuracy producing progressive forms (i.e., *-ing*) followed a U-shaped trajectory when acquiring the simple present/present continuous tense/aspect distinction in French speaking learners of English. U-shaped learning may be a by-product of reorganization or restructuring of prior knowledge [@gass_selinker_2008; @shirai1990u], and likely accounts for language instructors' contention that students often regress when learning new linguistic forms. Be that as it may, it is clear that the non-linear quality of this aspect of language learning requires a non-linear approach to modeling the underlying process.
+In first language acquisition research, the most cited example stems from children's use of the past tense [@ervin_miller1963; @cazden1968acquisition; @marcus1992overregularization]. For instance, @cazden1968acquisition found that children accurately produced irregular past tense verbs during a period of time, and, at a later point in time, began to produce over-generalization errors, e.g., *feet* followed by \**feets*. Eventually past tense production again surfaces as expected, typically around the age of three, which coincides with the developmental stage in which children acquire regular past tense verbs [See @marcus1992overregularization]. In the realm of Second Language Acquisition (SLA), researchers have documented non-linear, U-shaped courses of development in numerous areas for both developmental and instructional sequences [See @kellerman1985if; @long1990least; @shirai1990u; @geeslin2006longitudinal; @pliatsikas2013processing; @casani2020valutare; @williams2022u, among many others]. @kellerman1985if, for instance, documented Dutch learners of English acquiring verb alternation patterns of English following a U-shaped trajectory. In a similar vein, @lightbown1983exploring showed accuracy producing progressive forms (i.e., *-ing*) followed a U-shaped trajectory when acquiring the simple present/present continuous tense/aspect distinction in French speaking learners of English. U-shaped learning may be a by-product of reorganization or restructuring of prior knowledge [@gass_selinker_2008; @shirai1990u], and likely accounts for language instructors' contention that students often regress when learning new linguistic forms. Be that as it may, it is clear that the non-linear quality of this aspect of language learning requires a non-linear approach to modelling the underlying process.
 
 ### The data
 
