@@ -24,17 +24,21 @@ dat2 <- readRDS("data/dat2.rds")
 
 ## Motivation
 
-Quantitative analysis of linguistic data has seen a massive shift from statistical significance tests and analysis of variance to linear and generalised linear modelling, including models with so-called random effects (also known as hierarchical, mixed-effects, multi-level or nested models) [@winter2013; @winter2020]. Soon after linear models started being more commonly used, a need for models that could handle non-linear effects and were as flexible as linear models led to the adoption of Generalised Additive Linear (Mixed) Models, or GAMMs.
+In recent years quantitative analysis of linguistic data has benefited greatly from the now commonplace use of so-called random effects (also known as hierarchical, mixed-effects, multi-level or nested models, @winter2013; @winter2020). While this shift represents a clear improvement in statistical analyses, particularly in areas of linguistics in which nested structure is the norm (e.g., trial repetitions nested within participants), an over-reliance on standard linear modelling prevails, particularly in the cases of dynamic phenomena that may not constitute a linear relationship, e.g., vowel trajectories, pitch contours, acquisition processes, etc.
 
-GAMMs are now commonly employed in phonetic research (given the naturally dynamic nature of speech data) and this is reflected by the availability of several tutorials which focus on phonetic data [@soskuthy2017; @soskuthy2021; @wieling2018; @tamminga2016]. This is why we hope that this tutorial will make GAMMs accessible to researchers from other fields within linguistics. In particular, this tutorial is thought for researchers in bilingualism and multilingualism who wish to be able to start using GAMMs for non-linear data, which is very common in developmental and learning phenomena.
+Generalised Additive (Mixed) Models (GAMMs) are now commonly employed in phonetic research (given the naturally dynamic nature of speech data) and this is reflected by the availability of several tutorials which focus on phonetic data [@soskuthy2017; @soskuthy2021; @wieling2018; @tamminga2016]. This is why we hope that this tutorial will make GAMMs accessible to researchers from other fields within linguistics. In particular, this tutorial is thought for researchers in bilingualism and multilingualism who wish to be able to start using GAMMs for non-linear data, which is very common in developmental and learning phenomena.
 
 ### Generalised additive (mixed) models
 
-Generalised Additive Models (GAMs) and their mixed-effects version (GAMMs) are a generalisation of generalised linear models that can accommodate fitting non-linear models [@hastie1986; @wood2006]. The main component that is specific to GAMMs are smoothers or smooth terms. These are model terms that can fit non-linear effects. An advantage of using smooth terms is that they are constrained by a penalty measure---part of the fitting procedure and does not depend on user input---which prevents over-fitting the data. This approach is different from, for example, growth curve analyses which are based on user-specified polynomial degrees.
+Generalised Additive Models (GAMs) and their mixed-effects version (GAMMs) represent a variation of the generalised linear model that can accommodate modelling non-linear relationships [@hastie1986; @wood2006]. The main component that is specific to GAMMs are smoothers or smooth terms. These are model terms that can fit non-linear effects. An advantage of using smooth terms is that they are constrained by a penalty measure---part of the fitting procedure and does not depend on user input---which prevents over-fitting the data. This approach is different from, for example, growth curve analyses which are based on user-specified polynomial degrees.
 
-Readers interested in a more detailed conceptual discussion of GAMMs are referred to @soskuthy2017. The rest of this tutorial will focus on teaching the basics of GAMMs usage in R. While completing this tutorial will allow you to start-jump into fitting basic GAMMs, we invite interested readers to peruse the tutorials mentioned above to avoid unnecessary repetition of content. Finally, we opted not to treat statistical significance testing in GAMMs, due to its cumbersome nature (significance testing is treated in details in the aforementioned tutorials).
+Readers interested in a more detailed conceptual discussion of GAMMs are referred to @soskuthy2017. The rest of this tutorial focuses on applying GAMMs in bilingualism research using the statistical programming language R [@rct2023].
+
+<!-- While completing this tutorial will allow you to jump-start into fitting basic GAMMs, we invite interested readers to peruse the tutorials mentioned above to avoid unnecessary repetition of content. Finally, we opted not to treat statistical significance testing in GAMMs, due to its cumbersome nature (significance testing is treated in details in the aforementioned tutorials). -->
 
 ## Pre-requisites
+
+In what follows, we detail the packages needed to complete the tutorial, followed by two specific case studies designed to illustrate how GAMMs can be applied to model common phenomena in second language acquisition and bilingualism research.
 
 This tutorial assumes readers are already familiar with R [@rct2023] and have at least some experience fitting linear models, including models with random effects. The following packages need to be installed:
 
@@ -44,7 +48,7 @@ This tutorial assumes readers are already familiar with R [@rct2023] and have at
 
 -   tidygam
 
-You can find the tutorial code and data here: XXX.
+You can find the tutorial code and data here: <https://github.com/stefanocoretta/gamm_biling>.
 
 ## Case study 1: U-shaped learning
 
@@ -60,6 +64,8 @@ We have simulated data for accuracy scores from 200 language learners, taken at 
 
 ```{r}
 #| label: dat1
+dat1 <- readRDS("data/dat1.rds")
+
 # Print first 6 rows of the dataframe
 head(dat1)
 ```
@@ -69,6 +75,7 @@ The `score` column contains the accuracy scores, while the `proficiency` column 
 ```{r}
 #| label: fig-dat1
 #| echo: false
+#| fig-cap: "Scatter plot of proficiency and learning scores illustrating a U-shaped learning curve."
 
 dat1 %>%
   ggplot(aes(proficiency, score, group = subj)) +
@@ -110,6 +117,7 @@ Before looking at the summary of the `gam_1` model, we plot the predicted effect
 
 ```{r}
 #| label: fig-gam-1
+#| fig-cap: "Predicted accuracy score depending on proficiency, from a GAM."
 
 # attach tidygam
 library(tidygam)
@@ -142,7 +150,7 @@ We began our analysis with a simplified model examining the effect of proficienc
 
 ### Multiple smooth terms
 
-As mentioned previously, the data `dat1` contains accuracy and proficiency scores from 200 subjects, taken at 10 time points. The data was simulated so that proficiency increased over time (at different degrees for different speakers), as is often the case in language acquisition processes. An interesting question to consider is whether learning scores improve with time independently of proficiency, or if proficiency alone is causing learning scores to improve. We can approach this question using principles of causal inference. To this end, we develop directed acyclic graphs (DAGs) to describe the causal relationships involved. A full treatment of causal inference is beyond the scope of this paper. Interested readers are referred to XXX.
+As mentioned previously, the data `dat1` contains accuracy and proficiency scores from 200 subjects, taken at 10 time points. The data was simulated so that proficiency increased over time (at different degrees for different participants), as is often the case in language acquisition processes. An interesting question to consider is whether learning scores improve with time independently of proficiency, or if proficiency alone is causing learning scores to improve. We can approach this question using principles of causal inference. To this end, we develop directed acyclic graphs (DAGs) to describe the causal relationships involved. A full treatment of causal inference is beyond the scope of this paper. Interested readers are referred to @mcelreath2019.
 
 The DAGs in @fig-d1-dag represent the causal relationships between accuracy, proficiency scores and time in two scenarios. In (a), time affects proficiency and proficiency affects accuracy. In other words, time has a direct effect on proficiency, but not on accuracy; accuracy scores can be predicted from proficiency alone. In (b), on the other hand, time affects proficiency, as in (a), but also accuracy (and proficiency affects accuracy scores as in (a)). The practical interpretation is that time affects accuracy in two ways: through its effect on proficiency and directly through its effect on accuracy.
 
@@ -204,9 +212,7 @@ In `gam_2` we fit a GAM to learner accuracy `score` with two predictors: a smoot
 summary(gam_2)
 ```
 
-...
-
-Now we plot the model predictions.
+Now we plot the model predictions of accuracy score by proficiency and time point separately.
 
 ```{r}
 #| label: gam-2-preds
@@ -216,6 +222,11 @@ gam_2_preds <- predict_gam(
   series = "proficiency",
   exclude_terms = c("s(subj)", "s(subj,proficiency)")
 )
+```
+
+```{r}
+#| label: fig-gam-2-preds
+#| fig-cap: "Predicted accuracy score as a function of proficiency, from a GAM."
 
 plot(gam_2_preds)
 ```
@@ -228,6 +239,11 @@ gam_2_preds_t <- predict_gam(
   series = "time",
   exclude_terms = c("s(subj)", "s(subj,proficiency)")
 )
+```
+
+```{r}
+#| label: fig-gam-2-preds-t
+#| fig-cap: "Predicted accuracy score as a function of proficiency, from a GAM."
 
 plot(gam_2_preds_t) +
   ylim(20, 45)
@@ -237,12 +253,14 @@ plot(gam_2_preds_t) +
 
 To motivate our next example, we will now consider the production of Spanish vowels in three groups of bilinguals: simultaneous/native English/Spanish bilinguals (henceforth `es`) and late learners of Spanish with low and high levels of proficiency, `es_0` and `es_1`, respectively. Spanish has five phonemic vowels, /i, e, a, o, u/, and is often described as being a syllable-timed language in which the spectral envelope is rather stable and stressed and unstressed syllables have approximately the same duration. Though there is evidence that unstressed vowels can centralize to a certain degree, the differences between stressed and unstressed vowels are believed to be imperceptible [@martinez_celdran_1984]. American English, on the other hand, has a larger vowel inventory and is often described as a stress-timed language in which the duration between stressed syllables is approximately the same. Vowel reduction can occur in unstressed syllables, which typically manifests via shortening and/or centralization, with unstressed vowels often reducing to schwa ([ə]). Accordingly, English speaking learners of Spanish face a substantial obstacle when it comes to producing and perceiving Spanish vowels [See @aldrich2014acquisition; @cobb2009pronunciacion; @cobb2015adult; @bland2016speech; @iruela1997adquisicion, among others]. To wit, they often display cross-linguistic influence by producing unstressed Spanish vowels with \[ə\], particularly in the case of /a/, e.g., "casa" (Eng. *house*) as \[ka.sə\], and diphthongizing vowels in final position [@cobb2015adult].
 
-In the following example, we consider the production of Spanish vowels in the aforementioned groups of bilingual speakers. Interestingly, to our knowledge, all of the current research investigating the cross-linguistic influence of vowel reduction processes in learners of Spanish have utilized modelling strategies that rely upon formant measurements at a single time point, typically the mid-point of the vowel, rather than scrutinizing the entire trajectory of the spectral envelope. In our view, the dynamic nature of vowel formants poses an interesting use-case for modelling using non-linear methods, such as GAMs. To this end, we have simulated phonetic data from three aforementioned groups of bilinguals: simultaneous English/Spanish bilinguals, beginner late English/Spanish bilinguals and advanced late English/Spanish bilinguals. The data contains the Euclidean Distance (EuD) of three Spanish vowels /a, i, u/ from the vowel space centroid, taken from word-final non-stressed vowels, along nine equidistant time points. The measure is a good proxy for vowel reduction phenomena, which is to be expected in late bilinguals.
+In the following example, we consider the production of Spanish vowels in the aforementioned groups of bilingual participants. Interestingly, to our knowledge, all of the current research investigating the cross-linguistic influence of vowel reduction processes in learners of Spanish have utilized modelling strategies that rely upon formant measurements at a single time point, typically the mid-point of the vowel, rather than scrutinizing the entire trajectory of the spectral envelope. In our view, the dynamic nature of vowel formants poses an interesting use-case for modelling using non-linear methods, such as GAMs. To this end, we have simulated phonetic data from three aforementioned groups of bilinguals: simultaneous English/Spanish bilinguals, beginner late English/Spanish bilinguals and advanced late English/Spanish bilinguals. The data contains the Euclidean Distance (EuD) of three Spanish vowels /a, i, u/ from the vowel space centroid, taken from word-final non-stressed vowels, along nine equidistant time points. The measure is a good proxy for vowel reduction phenomena, which is to be expected in late bilinguals.
 
 ```{r}
 #| label: dat2
 
-dat2
+dat2 <- readRDS("data/dat2.rds")
+
+head(dat2)
 ```
 
 This is what the data looks like. The top row reports the synthetic data of simultaneous English/Spanish bilinguals (`es`). It can be observed that the Euclidean distance is quite stable across the duration of the vowel for all three vowels and away from 0 (which corresponds to a mid-central vowel), indicating no reduction takes place (as it is to be expected for Spanish). On the other hand, in the second and third row, we can see some vowel reduction at play: for /a/, beginners late bilinguals (`es_0`) completely reduce the vowel to a mid-central vowel, while the advanced late bilinguals (`es_1`) reduce it to a lesser degree, but it is still not quite a full Spanish /a/; /i/ and /u/ are produced with a diphthongal quality, where the first part of the vowel is quite reduced. Finally, comparing beginners and advanced bilinguals shows that the latter have less reduction, as expected by increasing proficiency in Spanish.
@@ -250,6 +268,7 @@ This is what the data looks like. The top row reports the synthetic data of simu
 ```{r}
 #| label: fig-dat2
 #| echo: false
+#| fig-cap: "Euclidean Distance through 9 time points taken from within vowels."
 
 dat2 %>%
   ggplot(aes(timep, eud, group = id, colour = group)) +
@@ -325,7 +344,7 @@ gam_3_preds
 
 The function `predict_gam()` automatically samples 10 equidistant points from numeric variables (like `timep`, based on the default `length_out = 10` argument) and all levels in categorical variables (like `group_vowel`). For each combination of the sampled points and levels, the function returns the value of the outcome (`eud`) and the standard error (`se`). The lower (`lower_ci`) and upper (`upper_ci`) boundaries of the 95% Confidence Interval are also returned.
 
-Furthermore, `predict_gam()` returns an object of class `tidygam` which can be plotted with `plot()` (similarly to how `ggpredict()` from the ggeffects package works, XXX). However, we might want to do some processing of the predictions before plotting: in particular, we might want to split the `group_vowel` column into the two original variables, `group` and `vowel`. We can achieve this straight from the function. And we might also want to extract more than 10 time points, to get a smoother curve.
+Furthermore, `predict_gam()` returns an object of class `tidygam` which can be plotted with `plot()` (similarly to how `ggpredict()` from the ggeffects package works, @luedecke2018). However, we might want to do some processing of the predictions before plotting: in particular, we might want to split the `group_vowel` column into the two original variables, `group` and `vowel`. We can achieve this straight from the function. And we might also want to extract more than 10 time points, to get a smoother curve.
 
 ```{r}
 #| label: gam-3-preds-2
@@ -352,4 +371,4 @@ gam_3_preds_2 %>%
 
 {{< pagebreak >}}
 
-# References
+## References
