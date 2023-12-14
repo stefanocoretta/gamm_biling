@@ -24,7 +24,7 @@ dat2 <- readRDS("data/dat2.rds")
 
 ## Motivation
 
-Quantitative data analysis of linguistic data has seen a massive shift from statistical significance tests and analysis of variance to linear and generalised linear modelling, including models with so-called random effects (also known as hierarchical, mixed-effects, multi-level or nested models) [@winter2013; @winter2020]. Soon after linear models started being more commonly used, a need for models that could handle non-linear effects and were as flexible as linear models led to the adoption of Generalised Linear (Mixed) Models, or GAMMs.
+Quantitative analysis of linguistic data has seen a massive shift from statistical significance tests and analysis of variance to linear and generalised linear modelling, including models with so-called random effects (also known as hierarchical, mixed-effects, multi-level or nested models) [@winter2013; @winter2020]. Soon after linear models started being more commonly used, a need for models that could handle non-linear effects and were as flexible as linear models led to the adoption of Generalised Additive Linear (Mixed) Models, or GAMMs.
 
 GAMMs are now commonly employed in phonetic research (given the naturally dynamic nature of speech data) and this is reflected by the availability of several tutorials which focus on phonetic data [@soskuthy2017; @soskuthy2021; @wieling2018; @tamminga2016]. This is why we hope that this tutorial will make GAMMs accessible to researchers from other fields within linguistics. In particular, this tutorial is thought for researchers in bilingualism and multilingualism who wish to be able to start using GAMMs for non-linear data, which is very common in developmental and learning phenomena.
 
@@ -52,19 +52,19 @@ You can find the tutorial code and data here: XXX.
 
 Research on language acquisition first documented over-regularization errors in the 60's [@ervin_miller1963; @cazden1968acquisition]. Subsequent research found that over-regularization errors tended to manifest in a developmental curve, and is now referred to as the *U-shaped developmental curve* [@williams2022u]. In most cases, U-shaped development is considered to be a three-step process, which begins with accurate performance, followed by a period in which performance dips, and then subsequently becomes accurate again [@carlucci2013necessity]. Interestingly, U-shaped curves are observed in numerous cognitive-developmental and learning contexts, particularly with regard to child development, e.g., understanding temperature, weight conservation, object permanence, and facial recognition [See @carlucci2013necessity], which, in turn, has fostered fruitful research and debate in Cognitive Science regarding learning models [e.g., @marcus1992overregularization; @rumelhart2014learning, among others].
 
-In first language acquisition research, the most cited example stems from children's use of the past tense [@ervin_miller1963; @cazden1968acquisition; @marcus1992overregularization]. For instance, @cazden1968acquisition found that children accurately produced irregular past tense verbs during a period of time, and, at a later point in time, began to produce over-generalization errors, e.g., *feet* followed by \**feets*. Eventually past tense production again surfaces as expected, typically around the age of three, which coincides with the developmental stage in which children acquire regular past tense verbs [See @marcus1992overregularization]. In the realm of Second Language Acquisition (SLA), researchers have documented non-linear, U-shaped courses of development in numerous areas for both developmental and instructional sequences [See @kellerman1985if; @long1990least; @shirai1990u; @geeslin2006longitudinal; @pliatsikas2013processing; @casani2020valutare; @williams2022u, among many others]. @kellerman1985if, for instance, documented Dutch learners of English acquiring verb alternation patterns of English following a U-shaped trajectory. In a similar vein, @lightbown1983exploring showed accuracy producing progressive forms (i.e., *-ing*) followed a U-shaped trajectory when acquiring the simple present/present continuous tense/aspect distinction in French speaking learners of English. U-shaped learning may be a by-product of reorganization or restructuring of prior knowledge [@gass_selinker_2008; @shirai1990u], and likely accounts for language instructors' contention that students often regress when learning new linguistic forms. Be that as it may, it is clear that the non-linear quality of this aspect of language learning requires a non-linear approach to modelling the underlying process.
+In first language acquisition research, the most cited example stems from children's use of the past tense [@ervin_miller1963; @cazden1968acquisition; @marcus1992overregularization]. For instance, @cazden1968acquisition found that children accurately produced irregular past tense verbs during a period of time, and, at a later point in time, began to produce over-generalization errors, e.g., *feet* followed by \**feets*. Eventually past tense production again surfaces as expected, typically around the age of three, which coincides with the developmental stage in which children acquire regular past tense verbs [See @marcus1992overregularization]. In the realm of Second Language Acquisition (SLA), researchers have documented non-linear, U-shaped courses of development in numerous areas for both developmental and instructional sequences [See @casani2020valutare; @kellerman1985if; @long1990least; @shirai1990u; @geeslin2006longitudinal; @pliatsikas2013processing; @williams2022u, among many others]. @kellerman1985if, for instance, documented Dutch learners of English acquiring verb alternation patterns of English following a U-shaped trajectory. In a similar vein, @lightbown1983exploring showed accuracy producing progressive forms (i.e., *-ing*) followed a U-shaped trajectory when acquiring the simple present/present continuous tense/aspect distinction in French speaking learners of English. U-shaped learning may be a by-product of reorganization or restructuring of prior knowledge [@gass_selinker_2008; @shirai1990u], and likely accounts for language instructors' contention that students often regress when learning new linguistic forms. Be that as it may, it is clear that the non-linear quality of this aspect of language learning requires a non-linear approach to modelling the underlying process.
 
 ### The data
 
-We have simulated data of learning scores from 200 subjects, taken at 10 time points. A proficiency score was also included for each subject at each time point. The data is intended to simulate a study in which participants perform a learning task and take a proficiency test at 10 consecutive time points. This is what the data looks like.
+We have simulated data for accuracy scores from 200 language learners, taken at 10 different time points. A proficiency score was also included for each participant at each time point. The data is intended to simulate a study in which participants perform the same learning task and proficiency assessment in a longitudinal design. We print the first six rows of the data frame below.
 
 ```{r}
 #| label: dat1
-
-dat1
+# Print first 6 rows of the dataframe
+head(dat1)
 ```
 
-The `score` column contains the learning scores, while the `proficiency` column the proficiency scores. The subject ID is given in `subj`. time point 0 to 9 is in `time`. @fig-dat1 shows the relationship between proficiency and learning scores for individual subjects. From the figure, it is clear that such relationship has a U-shape, by which learning scores intially decrease, plateau, then increase again with higher proficiency.
+The `score` column contains the accuracy scores, while the `proficiency` column the proficiency scores. The participant ID is given in `subj`. time point 0 to 9 is in `time`. @fig-dat1 shows the relationship between proficiency and learning scores for individual subjects. From the figure, it is clear that such relationship has a non-linear, U-shape, in which learning scores initially decrease, plateau, then increase again as proficiency increases.
 
 ```{r}
 #| label: fig-dat1
@@ -82,15 +82,15 @@ dat1 %>%
 
 ```
 
-In the following sections we will analyse this data using GAMMs. For pedagogical purposes, we will first focus on the effect of proficiency scores on learning scores at a single time point, time point 5. Subsequently, we will analyse the entire data, to illustrate how to conduct a time-series analysis.
+In the following sections we will analyse this data using GAMMs. For pedagogical purposes, we will first focus on the effect of proficiency scores on learning scores at a single time point, time point 5. Subsequently, we will analyse the entire data set, to illustrate how to conduct a time-series analysis.
 
 ### Modelling a non-linear effect
 
-Let's first focus on how to model a non-linear effect: here, we can look at the effect of the proficiency score on the learning score. As we have seen in @fig-dat1, the effect is U-shaped, i.e. it is not linear. To simplify things, let's look only at data from time point. We will extend the analysis to also include time point as a predictor later. We can model a non-linear effect of proficiency on the learning score with the following code.
+Let's first focus on how to model a non-linear effect: here, we can look at the effect of the proficiency score on learner accuracy. As we have seen in @fig-dat1, the effect is U-shaped, i.e. it is not linear. To simplify, we will begin our analysis using data from a single time point. Later we will expand the analysis to also include time as a predictor. We model a non-linear effect of proficiency on accuracy with the following code.
 
 ```{r}
 #| label: gam-1
-
+# Subset the data to time point 5
 dat15 <- filter(dat1, time == 5)
 
 # attach the mgcv package
@@ -104,9 +104,9 @@ gam_1 <- gam(
 
 ```
 
-The formula states that `score`, the outcome variable (also known as the dependent variable) should be modelled as a function of `proficiency`, but we use the `s()` to indicate that we want to estimate a (potentially) non-linear effect. The name of the function, `s`, stands for "smooth term". Smooth terms (aka smoothers) are mathematical objects that allow GAMs to fit non-linear effects. A detailed treatment of smoothers is beyond the scope of this tutorial, so we refer the readers to XXX.
+The formula states that `score`, the outcome variable (also known as the dependent variable or criterion) is modelled as a function of `proficiency`. Note that we use `s()` to indicate that we want to estimate a (potentially) non-linear effect. The name of the function, `s`, stands for "smooth term". Smooth terms (aka smoothers) are mathematical functions that allow GAMs to fit non-linear effects. A detailed treatment of smoothers is beyond the scope of this tutorial. We refer interested readers to @wood2006 for a description of the underlying math.
 
-Before looking at the summary of the `gam_1` model, let's plot the predicted effect of proficiency. We will use the tidygam package, which provides users with utility functions that make extracting and plotting predictions from GAMs easier.
+Before looking at the summary of the `gam_1` model, we plot the predicted effect of proficiency. For this, we will use the tidygam package, which provides users with utility functions that make extracting and plotting predictions from GAMs more accessible.
 
 ```{r}
 #| label: fig-gam-1
@@ -122,7 +122,7 @@ plot(gam_1_preds, series = "proficiency")
 
 ```
 
-@fig-gam-1 is a plot of the predicted effect of proficiency on learning score, based on the `gam_1` model from above. We will look into the details of `predict_gam()`. For now, just notice that the learning score initially decreases with increasing proficiency until about 0.5 and then starts increasing, thus producing the typical U-shaped curve. Let's inspect the model summary now.
+@fig-gam-1 is a plot of the predicted effect of proficiency on accuracy, based on the `gam_1` model. We will look into the details of predict_gam() shortly, but for now, notice that accuracy initially decreases as proficiency increases. At proficiency of approximately 0.5, accuracy begins to increase, resulting in the typical U-shaped curve described above. At this juncture we will inspect the model summary.
 
 ```{r}
 #| label: gam-1-sum
@@ -130,21 +130,21 @@ plot(gam_1_preds, series = "proficiency")
 summary(gam_1)
 ```
 
-The relevant parts of the summary for the time being are the `Parametric coefficients:` table and the `Approximate significance of smooth terms:` table. The first table contains the estimate of the intercept. This intercept is the same intercept you would get in a linear model: here, the estimate of the intercept is the predicted learning score when proficiency is 0. According to the summary, when proficiency is 0, the learning score is about 25. But what we are really interested in is the effect of proficiency on learning score, rather than the intercept per se.
+The relevant parts of the summary for the time being are the `Parametric coefficients:` table and the `Approximate significance of smooth terms:` table. The former contains the estimate of the intercept. This intercept represents the same intercept you would estimate in a standard linear model. In our case, the estimate of the intercept is the predicted accuracy score when proficiency is equal to zero. Thus our interpretation according to the summary, is that when proficiency is 0, learner accuracy is about 25.
 
-Information on the effect of proficiency is found in the second table, which contains estimates of the smooth terms. Alas, these estimates don't say much about the effect per se. Rather, they just indicate if the effect is linear or not. More specifically, the `edf` estimate, which stands for Estimated Degrees of Freedom, would be 1 for perfectly linear effects and greater than 1 for non-linear effects. This number tells us nothing about the shape of the effect. The only way to assess this is to plot the model predictions, as we have done above.
+Importantly, what we are interested in is the effect of proficiency on accuracy, rather than the estimate of accuracy when proficiency is zero, i.e., the intercept. Information on the effect of proficiency is found in the second table, which contains estimates of the smooth terms. Alas, these estimates are not informative about the effect, per se, but rather indicate if the relationship between proficiency and accuracy is linear (or not) in nature. More specifically, the `edf` estimate, which stands for Estimated Degrees of Freedom, is equal to one in the case of a perfectly linear relationship. A value greater than one is an indication of non-linear effects. Crucially, the EDF estimate is not informative with regard to the exact shape of the effect. The only way to assess this is to plot the model predictions, as we have done in @fig-gam-1.
 
-In our `gam_1` model, the `edf` for the smooth term over proficiency is 2.9. This is significantly different from 1 (p \< 2e-16), thus suggesting that the effect of proficiency is not linear (the `Ref.df`, reference degrees of freedom, and `F` values have the only function of being needed to get a *p*-value).
+In our `gam_1` model, the `edf` of the smooth term for proficiency is 2.9 and is significantly different from 1 (p \< 2e-16), thus suggesting that the effect of proficiency on accuracy is not linear (Note: the `Ref.df`, reference degrees of freedom, and `F` values merely serve the purpose of being used to derive a *p*-value).
 
-If we were to report this model and results, we could write something along the following lines: We fitted a Generalised Additive Model to learning score, with a smooth term over proficiency (to model non-linear effects). According to the model, the effect of proficiency is significantly non-linear (*F* = 16.46, *p* \< 0.0001). Based on the prediction plot, we observe that at lower proficiency, learning scores initially decrease and then start increasing again from about proficiency 0.5.
+If we were to report this model and results, we could write something along the following lines: We fitted a Generalised Additive Model to learner accuracy scores, with a smooth term over proficiency (to model non-linear effects). According to the model, the effect of proficiency is significantly non-linear (*F* = 16.46, *p* \< 0.0001). Based on the prediction plot, we observe that at lower proficiency, learning scores initially decrease and then start increasing again when proficiency reaches approximately 0.5.
 
-In the following section we will refit the data now including time point (note that this would be the model to fit in the first place and we have fitted a model only with proficiency for pedagogical purposes).
+We began our analysis with a simplified model examining the effect of proficiency on accuracy at a single time point for pedagogical purposes. In the following section we will expand our analysis by refitting the data including time as a predictor.
 
 ### Multiple smooth terms
 
-The data `dat1` contains learning and proficiency scores from 200 subjects, taken at 10 time points. The data was simulated so that proficiency increased with time (at different degrees for different speakers). An interesting question is whether learning scores improve with time independently of proficiency, or if proficiency alone is causing learning scores to improve. We can approach with question by applying a statistical method called causal inference, based on directed acyclic graphs (DAGs) theory (a full treatment of this is beyond the scope of the paper. Readers are referred to XXX).
+As mentioned previously, the data `dat1` contains accuracy and proficiency scores from 200 subjects, taken at 10 time points. The data was simulated so that proficiency increased over time (at different degrees for different speakers), as is often the case in language acquisition processes. An interesting question to consider is whether learning scores improve with time independently of proficiency, or if proficiency alone is causing learning scores to improve. We can approach this question using principles of causal inference. To this end, we develop directed acyclic graphs (DAGs) to describe the causal relationships involved. A full treatment of causal inference is beyond the scope of this paper. Interested readers are referred to XXX.
 
-The DAGs in @fig-d1-dag represent the causal relationships between learning scores, proficiency scores and time point in the two scenarios. In (a), time point affects proficiency and proficiency affects learning scores. In other words, time point has a direct effect on proficiency but not on learning scores; learning scores can be predicted from proficiency alone. In (b), on the other hand, time point affects proficiency as in (a) but also learning scores (and proficiency affects learning scores as in (a)). This means that time point affects learning scores in two ways: through its effect on proficiency and directly through its effect on learning scores.
+The DAGs in @fig-d1-dag represent the causal relationships between accuracy, proficiency scores and time in two scenarios. In (a), time affects proficiency and proficiency affects accuracy. In other words, time has a direct effect on proficiency, but not on accuracy; accuracy scores can be predicted from proficiency alone. In (b), on the other hand, time affects proficiency, as in (a), but also accuracy (and proficiency affects accuracy scores as in (a)). The practical interpretation is that time affects accuracy in two ways: through its effect on proficiency and directly through its effect on accuracy.
 
 ```{r}
 #| label: fig-d1-dag
@@ -183,7 +183,7 @@ time -> score
 plot(g2)
 ```
 
-DAGs allow us to make causal statements based on statistical results. In this case, when including both time point and proficiency as predictors in a GAM, time should not have an effect on learning score if scenario (a) is correct (while it should have an effect if scenario (b) is correct). Let's model the data.
+DAGs allow us to make causal statements based on statistical results. In this case, when including both time and proficiency as predictors in a GAM, time should not have an effect on learner accuracy if scenario (a) is correct (while it should have an effect if scenario (b) is correct). Now we fit the model.
 
 ```{r}
 #| label: gam-2
@@ -196,7 +196,7 @@ gam_2 <- gam(
 )
 ```
 
-In `gam_2` we fit a GAM to learning scores `score` with two predictors: a smooth term over proficiency and a smooth term over time point. We also include random effects to account for data from multiple participants. The syntax for random effects in GAMs is different from the syntax in lme4. With `gam()`, we can specify random effects using smooth terms and the `re` (for Random Effects) basis function. Random intercept are added with the syntax `s(ranint, bs = "re")` and random slopes with the syntax `s(ranint, ranslope, bs = "re")`. Here we just add a random intercept by subject for illustration. Let's inspect the model summary.
+In `gam_2` we fit a GAM to learner accuracy `score` with two predictors: a smooth term over proficiency and a smooth term over time. We also include random effects to account for nested data from multiple participants. The syntax for random effects in GAMs is different from the more familiar syntax used in lme4. With `gam()`, we can specify random effects using smooth terms and the argument `re` (for Random Effects) basis function. Random intercepts are added with the syntax `s(ranint, bs = "re")` and random slopes with the syntax `s(ranint, ranslope, bs = "re")`. Here we only include a by-subject random intercept for illustration. Below we inspect the model summary.
 
 ```{r}
 #| label: gam-2-sum
@@ -206,7 +206,7 @@ summary(gam_2)
 
 ...
 
-Let's plot the model predictions.
+Now we plot the model predictions.
 
 ```{r}
 #| label: gam-2-preds
@@ -233,11 +233,11 @@ plot(gam_2_preds_t) +
   ylim(20, 45)
 ```
 
-## Case study 2: simultaneous vs late bilinguals
+## Case study 2: L2 vowel production in simultaneous and late bilinguals
 
 To motivate our next example, we will now consider the production of Spanish vowels in three groups of bilinguals: simultaneous/native English/Spanish bilinguals (henceforth `es`) and late learners of Spanish with low and high levels of proficiency, `es_0` and `es_1`, respectively. Spanish has five phonemic vowels, /i, e, a, o, u/, and is often described as being a syllable-timed language in which the spectral envelope is rather stable and stressed and unstressed syllables have approximately the same duration. Though there is evidence that unstressed vowels can centralize to a certain degree, the differences between stressed and unstressed vowels are believed to be imperceptible [@martinez_celdran_1984]. American English, on the other hand, has a larger vowel inventory and is often described as a stress-timed language in which the duration between stressed syllables is approximately the same. Vowel reduction can occur in unstressed syllables, which typically manifests via shortening and/or centralization, with unstressed vowels often reducing to schwa ([ə]). Accordingly, English speaking learners of Spanish face a substantial obstacle when it comes to producing and perceiving Spanish vowels [See @aldrich2014acquisition; @cobb2009pronunciacion; @cobb2015adult; @bland2016speech; @iruela1997adquisicion, among others]. To wit, they often display cross-linguistic influence by producing unstressed Spanish vowels with \[ə\], particularly in the case of /a/, e.g., "casa" (Eng. *house*) as \[ka.sə\], and diphthongizing vowels in final position [@cobb2015adult].
 
-In the following example, we consider the production of Spanish vowels in the aforementioned groups of bilingual speakers. Interestingly, to our knowledge, all of the current research investigating the cross-linguistic influence of vowel reduction processes in learners of Spanish have utilized modelling strategies that rely upon formant measurements at a single time point, typically the mid-point of the vowel, rather than scrutinizing the entire trajectory of the spectral envelope. In our view, the dynamic nature of vowel formants poses an interesting use-case for modelling using non-linear methods, such as GAMs. To this end, we have simulated phonetic data from three groups of bilinguals: simultaneous English/Spanish bilinguals, beginners late English/Spanish bilinguals and advanced late English/Spanish bilinguals. The data contains the Euclidean Distance (EuD) of three Spanish vowels /a, i, u/ from the vowel space centroid, taken from word-final non-stressed vowels, along 9 equidistant time points. The measure is a good proxy for vowel reduction phenomena, which is to be expected in late bilinguals.
+In the following example, we consider the production of Spanish vowels in the aforementioned groups of bilingual speakers. Interestingly, to our knowledge, all of the current research investigating the cross-linguistic influence of vowel reduction processes in learners of Spanish have utilized modelling strategies that rely upon formant measurements at a single time point, typically the mid-point of the vowel, rather than scrutinizing the entire trajectory of the spectral envelope. In our view, the dynamic nature of vowel formants poses an interesting use-case for modelling using non-linear methods, such as GAMs. To this end, we have simulated phonetic data from three aforementioned groups of bilinguals: simultaneous English/Spanish bilinguals, beginner late English/Spanish bilinguals and advanced late English/Spanish bilinguals. The data contains the Euclidean Distance (EuD) of three Spanish vowels /a, i, u/ from the vowel space centroid, taken from word-final non-stressed vowels, along nine equidistant time points. The measure is a good proxy for vowel reduction phenomena, which is to be expected in late bilinguals.
 
 ```{r}
 #| label: dat2
