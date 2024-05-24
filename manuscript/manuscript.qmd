@@ -16,10 +16,14 @@ theme_set(theme_light())
 library(mgcv)
 library(tidygam)
 library(dagitty)
+```
+
+```{r}
+#| label: data
+#| include: false
 
 dat1 <- readRDS("data/dat1.rds")
 dat2 <- readRDS("data/dat2.rds")
-
 ```
 
 ## Motivation
@@ -128,7 +132,7 @@ plot(gam_1_preds, series = "proficiency")
 
 ```
 
-@fig-gam-1 is a plot of the predicted effect of proficiency on accuracy, based on the `gam_1` model. We will look into the details of predict_gam() shortly, but for now, notice that accuracy initially decreases as proficiency increases. At proficiency of approximately 0.5, accuracy begins to increase, resulting in the typical U-shaped curve described above. At this juncture we will inspect the model summary.
+@fig-gam-1 is a plot of the predicted effect of proficiency on accuracy, based on the `gam_1` model. We will look into the details of `predict_gam()` shortly, but for now, notice that accuracy initially decreases as proficiency increases. At proficiency of approximately 0.5, accuracy begins to increase, resulting in the typical U-shaped curve described above. At this juncture we will inspect the model summary.
 
 ```{r}
 #| label: gam-1-sum
@@ -140,9 +144,9 @@ The relevant parts of the summary for the time being are the `Parametric coeffic
 
 Importantly, what we are interested in is the effect of proficiency on accuracy, rather than the estimate of accuracy when proficiency is zero, i.e., the intercept. Information on the effect of proficiency is found in the second table, which contains estimates of the smooth terms. Alas, these estimates are not informative about the effect, per se, but rather indicate if the relationship between proficiency and accuracy is linear (or not) in nature. More specifically, the `edf` estimate, which stands for Estimated Degrees of Freedom, is equal to one in the case of a perfectly linear relationship. A value greater than one is an indication of non-linear effects. Crucially, the EDF estimate is not informative with regard to the exact shape of the effect. The only way to assess this is to plot the model predictions, as we have done in @fig-gam-1.
 
-In our `gam_1` model, the `edf` of the smooth term for proficiency is 2.9 and is significantly different from 1 (p \< 2e-16), thus suggesting that the effect of proficiency on accuracy is not linear (Note: the `Ref.df`, reference degrees of freedom, and `F` values merely serve the purpose of being used to derive a *p*-value).
+In our `gam_1` model, the `edf` of the smooth term for proficiency is 2.9, thus suggesting that the effect of proficiency on accuracy is not linear (Note: the `Ref.df`, reference degrees of freedom, and `F` values merely serve the purpose of being used to derive a *p*-value). The *p*-value indicates the probability of the observed smooth under the null hypothesis that the smooth is a horizontal flat line (in other words, under the null hypothesis that the variable of the smooth has no effect on the outcome variable, @simpson2023).
 
-If we were to report this model and results, we could write something along the following lines: We fitted a Generalised Additive Model to learner accuracy scores, with a smooth term over proficiency (to model non-linear effects). According to the model, the effect of proficiency is significantly non-linear (*F* = 16.46, *p* \< 0.0001). Based on the prediction plot, we observe that at lower proficiency, learning scores initially decrease and then start increasing again when proficiency reaches approximately 0.5.
+If we were to report this model and results, we could write something along the following lines: We fitted a Generalised Additive Model to learner accuracy scores, with a smooth term over proficiency (to model non-linear effects). According to the model, the effect of proficiency is non-linear and significant (*F* = 16.46, *p* \< 0.0001). Based on the prediction plot, we observe that at lower proficiency, learning scores initially decrease and then start increasing again when proficiency reaches approximately 0.5.
 
 We began our analysis with a simplified model examining the effect of proficiency on accuracy at a single time point for pedagogical purposes. In the following section we will expand our analysis by refitting the data including time as a predictor.
 
@@ -218,7 +222,7 @@ Now we plot the model predictions of accuracy score by proficiency and time poin
 gam_2_preds <- predict_gam(
   gam_2, length_out = 25,
   series = "proficiency",
-  exclude_terms = c("s(subj)", "s(subj,proficiency)")
+  exclude_terms = c("s(subj)")
 )
 ```
 
@@ -235,17 +239,21 @@ plot(gam_2_preds)
 gam_2_preds_t <- predict_gam(
   gam_2, length_out = 25,
   series = "time",
-  exclude_terms = c("s(subj)", "s(subj,proficiency)")
+  exclude_terms = c("s(subj)")
 )
 ```
 
 ```{r}
 #| label: fig-gam-2-preds-t
-#| fig-cap: "Predicted accuracy score as a function of proficiency, from a GAM."
+#| fig-cap: "Predicted accuracy score as a function of time, from a GAM."
 
 plot(gam_2_preds_t) +
   ylim(20, 45)
 ```
+
+@fig-gam-2-preds clearly shows a non-linear effect of proficiency on accuracy scores. On the other hand, @fig-gam-2-preds-t indicates that, once accounting for the effect of proficiency, time has virtually no effect on accuracy, as expected based on the data simulation and DAGs. Note that according to the model the effect of time is linear but *non-zero,* hence the significant *p-*value for that smooth. The effect is nonetheless practically zero, for two reasons: (1) first, the data was simulated in such a way that time has no effect; (2) second, when inspecting the predicted effect one can see that the mean difference in accuracy score between time point 1 and 11 is about 0.2, which on the simulated accuracy scale is negligible. This constitutes a nice caveat about issues with significance testing. See @gigerenzer2004 for more on the topic. Generally, we advise researchers to rely more on model plotting to assess effects.
+
+We could report this model like so: We fitted a Generalised Additive Model to learner accuracy scores, with a smooth term over proficiency (to model non-linear effects of proficiency) and a smooth term over time (to model non-linear effects of time). We also included a random intercept smooth for subject (to account for overall difference in mean accuracy by subject). According to the model, the effect of proficiency is non-linear and significant (*F* = 4638.38, *p* \< 0.0001). Based on the prediction plot, we observe that at lower proficiency, learning scores initially decrease and then start increasing again when proficiency reaches approximately 0.5. While the model summary indicates a significant effect of time on accuracy, the effect is negligibly small as it can be observed in the prediction plot of time. To summaries, the model suggests a non-linear effect of proficiency on learners' accuracy scores, but no effect of time.
 
 ## Case study 2: L2 vowel production in simultaneous and late bilinguals
 
