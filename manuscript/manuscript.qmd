@@ -375,6 +375,14 @@ gam_3_preds_2 %>%
   facet_grid(cols = vars(vowel))
 ```
 
+What follows is an example of how the model and results could be reported in writing.
+
+We fitted a Generalised Additive Model to Euclidean Distance values taken along the duration of the vowels /a, i. u/ in simultaneous, low-proficiency late and high-proficiency late English/Spanish bilinguals. We included a parametric term for the variable `group_vowel` which is the combination of group (`es`, `es_0`, `es_1`) and vowel (`a`, `i`, `u`) to model mean differences in EUD between group/vowel, and a smooth term over time point (`timep`) with `group_vowel` as a by-variable to model non-linear trajectories of EUD in each group/vowel condition. We have also included a random factor smooth by subject over time point to model for by-subject differences in mean EUD and trajectory shapes.
+
+The simultaneous English/Spanish bilingual data (group `es`) in @fig-gam-3 clearly shows stable EUD throughout the duration of vowels /a/, /i/ and /u/, indicating that no unstressed vowel reduction is at place (of course, since the data is simulated, the EUD trajectories are unnaturally flat). Moreover, the EUDs for each vowel differ thus indicating that each vowel is distinguished despite absence of stress as we would expect in Spanish. When looking at the beginner late bilinguals (group `es_0`), the plot indicates that /a/ is reduced to \[ə\] (the EUD is 0) and that /i/ and /u/ are strongly diphthongised and that the first part of the diphthong is close to \[ə\] while the second part does not quite reach the EUD values of the simultaneous English/Spanish bilinguals, again as we would expect in English speakers learning Spanish.
+
+In the high-proficiency late English/Spanish bilinguals we can observe almost no reduction in /a/ (the EUD values are close to the simultaneous bilinguals' values and flat) and a lesser degree of reduction in /i/ and /u/, although the EUD value for the second part of the diphthongised vowels still don't quite reach the value of the simultaneous bilinguals. Moreover, the second part of /i/ and /u/ is very similar in both late bilingual groups, thus suggesting that while there is less diphthongisation in the high-proficiency group, this group still hasn't developed simultaneous bilingual-like targets.
+
 {{< pagebreak >}}
 
 ## References
