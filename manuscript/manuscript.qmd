@@ -36,7 +36,7 @@ Generalised Additive (Mixed) Models (GAMMs) are now commonly employed in phoneti
 
 Generalised Additive Models (GAMs) and their mixed-effects version (GAMMs) represent a variation of the generalised linear model that can accommodate modelling non-linear relationships [@hastie1986; @wood2006]. The main component that is specific to GAMMs are smoothers or smooth terms. These are model terms that can fit non-linear effects. An advantage of using smooth terms is that they are constrained by a smoothing penalty parameter---part of the fitting procedure and does not depend on user input---which can prevent over-fitting the data. This approach is different from, for example, growth curve analyses which are based on user-specified polynomial degrees. Note however that under/over-fitting is still possible depending on the number of basis functions used in building the smoothers (see tutorials above for an explanation).
 
-Readers interested in a more detailed conceptual discussion of GAMMs are referred to @soskuthy2017. The rest of this tutorial focuses on applying GAMMs in bilingualism research using the statistical programming language R [@rct2023]. While completing this tutorial will allow you to jump-start into fitting basic GAMMs, we invite interested readers to peruse the tutorials mentioned above to avoid unnecessary repetition of content here. Finally, we opted not to treat statistical significance testing in GAMMs (significance testing is treated in details in the aforementioned tutorials).
+Readers interested in a more detailed conceptual discussion of GAMMs are referred to @soskuthy2017. The rest of this tutorial focuses on applying GAMMs in bilingualism research using the statistical programming language R [@rct2023]. While completing this tutorial will allow you to jump-start into fitting basic GAMMs with the mgcv package [@wood2006, @wood2011], we invite interested readers to peruse the tutorials mentioned above to avoid unnecessary repetition of content here. Finally, we opted not to treat statistical significance testing in GAMMs (significance testing is treated in details in the aforementioned tutorials).
 
 ## Pre-requisites
 
@@ -115,7 +115,7 @@ gam_1 <- gam(
 
 The formula states that `score`, the outcome variable (also known as the dependent variable or criterion) is modelled as a function of `proficiency`. Note that we use `s()` to indicate that we want to estimate a (potentially) non-linear effect. The name of the function, `s`, stands for "smooth term". Smooth terms (aka smoothers) are mathematical functions that allow GAMs to fit non-linear effects. A detailed treatment of smoothers is beyond the scope of this tutorial. We refer readers to @wood2006 for a mathematical description and to other existing tutorials for a gentler introduction [@soskuthy2017; @wieling2018; @pedersen2019].
 
-Before looking at the summary of the `gam_1` model, we plot the predicted effect of proficiency. For this, we will use the tidygam package, which provides users with utility functions that make extracting and plotting predictions from GAMs more accessible.
+Before looking at the summary of the `gam_1` model, we plot the predicted effect of proficiency. For this, we will use the tidygam package [@coretta2023], which provides users with utility functions that make extracting and plotting predictions from GAMs more accessible.
 
 ```{r}
 #| label: fig-gam-1
@@ -218,6 +218,7 @@ Now we plot the model predictions of accuracy score by proficiency and time poin
 
 ```{r}
 #| label: gam-2-preds
+#| warning: false
 
 gam_2_preds <- predict_gam(
   gam_2, length_out = 25,
@@ -253,7 +254,7 @@ plot(gam_2_preds_t) +
 
 @fig-gam-2-preds clearly shows a non-linear effect of proficiency on accuracy scores. On the other hand, @fig-gam-2-preds-t indicates that, once accounting for the effect of proficiency, time has virtually no effect on accuracy, as expected based on the data simulation and DAGs. Note that according to the model the effect of time is linear but *non-zero,* hence the significant *p-*value for that smooth. The effect is nonetheless practically zero, for two reasons: (1) first, the data was simulated in such a way that time has no effect; (2) second, when inspecting the predicted effect one can see that the mean difference in accuracy score between time point 1 and 11 is about 0.2, which on the simulated accuracy scale is negligible. This constitutes a nice caveat about issues with significance testing. See @gigerenzer2004 for more on the topic. Generally, we advise researchers to rely more on model plotting to assess effects.
 
-We could report this model like so: We fitted a Generalised Additive Model to learner accuracy scores, with a smooth term over proficiency (to model non-linear effects of proficiency) and a smooth term over time (to model non-linear effects of time). We also included a random intercept smooth for subject (to account for overall difference in mean accuracy by subject). According to the model, the effect of proficiency is non-linear and significant (*F* = 4638.38, *p* \< 0.0001). Based on the prediction plot, we observe that at lower proficiency, learning scores initially decrease and then start increasing again when proficiency reaches approximately 0.5. While the model summary indicates a significant effect of time on accuracy, the effect is negligibly small as it can be observed in the prediction plot of time. To summaries, the model suggests a non-linear effect of proficiency on learners' accuracy scores, but no effect of time.
+We could report this model like so: We fitted a Generalised Additive Model to learner accuracy scores, with a smooth term over proficiency (to model non-linear effects of proficiency) and a smooth term over time (to model non-linear effects of time). We also included a random intercept smooth for subject (to account for overall difference in mean accuracy by subject). According to the model, the effect of proficiency is non-linear and significant (*F* = 4638.38, *p* \< 0.0001). Based on the prediction plot, we observe that at lower proficiency, learning scores initially decrease and then start increasing again when proficiency reaches approximately 0.5. While the model summary indicates a significant effect of time on accuracy, the effect is negligibly small as it can be observed in the prediction plot of time. To summarise, the model suggests a non-linear effect of proficiency on learners' accuracy scores, but no effect of time.
 
 ## Case study 2: L2 vowel production in simultaneous and late bilinguals
 
@@ -284,7 +285,7 @@ dat2 %>%
 
 We can use a GAM to model Euclidean distance along time point in the different vowels and different bilingual groups. Fitting smooth terms for different levels of categorical predictors can be achieved by specifying the categorical predictor as the value of the `by` argument inside the smooth term function `s()`: for example `s(timep, by = vowel)` would ensure a non-linear effect of time point is estimated for each vowel. In our data, we want to model the interaction of vowel (/a, i, u/) and group (`es, es_0, es_1`). Unfortunately, the additive nature of GAMs does not allow the direct specification of interactions between smooth terms like one would do in a linear model (interactions require product operations). Note that interactions between parametric terms are supported, but these allow only for interactions in the overall height of the smoothers, not in their shape. The method presented in this section allows users to specify "interactions" in smooth therms that can model differences in both height and shape.
 
-To include interactions between smooth terms, we can simply construct a new predictor with the combination of vowel and group and use that as the `by`-variable in the smooth terms. Due to how smooth terms are constructed when you include a `by`-variable, it is necessary to also include the variable as a parametric term (i.e. a classical linear term).
+To include interactions between smooth terms, we can simply construct a new predictor with the combination of vowel and group and use that as the `by`-variable in the smooth terms. Due to how smooth terms are constructed when you include a `by`-variable, it is necessary to also include the variable as a parametric term (i.e. a classical linear term). We would also like to allow for the modelled trajectories to vary by subject both in height and shape: while random effects included with `bs = "re"` (which we used in the first case study) account for difference in height and rotation of the fitted curves, *random factor smooth interaction* terms fit a different curve to each level of the chosen factor (like in our case, subject). Random factor smooth interaction terms are specified with `bs = "fs"`: the first argument in `s()` should be the variable to smooth over (here, `timep`) and the second argument is the factor (here `subj`) each of which levels will be fitted separately. Finally, the `m` argument corresponds to the order of the smoothing penalty: higher orders lead to more smoothing (the default is `2`, a second-order penalty). Setting `m = 1` corresponds to a higher constraint on the smooths of each level in the random factor, and it is thus a safeguard against over-fitting.
 
 ```{r}
 #| label: dat2-prep
@@ -383,6 +384,15 @@ The simultaneous English/Spanish bilingual data (group `es`) in @fig-gam-3 clear
 
 In the high-proficiency late English/Spanish bilinguals we can observe almost no reduction in /a/ (the EUD values are close to the simultaneous bilinguals' values and flat) and a lesser degree of reduction in /i/ and /u/, although the EUD value for the second part of the diphthongised vowels still don't quite reach the value of the simultaneous bilinguals. Moreover, the second part of /i/ and /u/ is very similar in both late bilingual groups, thus suggesting that while there is less diphthongisation in the high-proficiency group, this group still hasn't developed simultaneous bilingual-like targets.
 
+## Summary
+
+This introductory tutorial covered the basics of fitting non-linear effects using Generalised Additive Models (GAMs) and they mixed-effects counterpart Generalised Additive Mixed Models (GAMMs) with the mgcv and tidygam packages in R.
+
+Two literature-based simulated case studies were employed to illustrate how to fit and plot GAMs. Case study 1 was about U-shaped learning and focused on modelling non-linear effects with smooths (`s()` terms in R syntax) and on obtaining model predictions for plotting. Case study 2 illustrated a time-series analysis of euclidean distance trajectories of three vowels (/a, i, u/) of three bilingual groups (simultaneous English/Spanish, low-proficiency late, high proficiency late). This case study introduced readers to `by`- variables, used to model effects of categorical factors on smooth, including interactions between factors, and random factor smooth interactions, which fit random effects.
+
+This tutorial on its own will not be sufficient to develop an adequate GAM analysis but constitutes a low-barrier entry to readers who are interested in learning about GAMs. We encourage those who wish to run a full GAM analysis to peruse the tutorials mentioned in the introduction: @soskuthy2017, @soskuthy2021, @pedersen2019, @tamminga2016, @wieling2018. Important topics that were not covered here are: selection of type and number of basis functions in smooths, autocorrelation and autoregressive models, statistical inference and other distribution families.
+
 {{< pagebreak >}}
 
 ## References
+
