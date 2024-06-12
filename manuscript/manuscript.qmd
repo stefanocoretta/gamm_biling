@@ -220,6 +220,7 @@ Now we plot the model predictions of accuracy score by proficiency and time poin
 ```{r}
 #| label: gam-2-preds
 #| warning: false
+
 # Get model predictions for 'proficiency', assign them to 'gam_2_preds'
 gam_2_preds <- predict_gam(
   gam_2, length_out = 25,
@@ -248,6 +249,7 @@ gam_2_preds_t <- predict_gam(
 ```{r}
 #| label: fig-gam-2-preds-t
 #| fig-cap: "Predicted accuracy score as a function of time, from a GAM."
+
 # Plot predictions
 plot(gam_2_preds_t) +
   ylim(20, 45)
@@ -400,3 +402,4 @@ This tutorial on its own will not be sufficient to develop an adequate GAM analy
 {{< pagebreak >}}
 
 ## References
+
