@@ -41,16 +41,30 @@
 \makeatother
 \usepackage{xcolor}
 \setlength{\emergencystretch}{3em} % prevent overfull lines
-\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\setcounter{secnumdepth}{5}
 % Make \paragraph and \subparagraph free-standing
+\makeatletter
 \ifx\paragraph\undefined\else
   \let\oldparagraph\paragraph
-  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
 \fi
 \ifx\subparagraph\undefined\else
   \let\oldsubparagraph\subparagraph
-  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
 \fi
+\makeatother
 
 \usepackage{color}
 \usepackage{fancyvrb}
@@ -70,7 +84,7 @@
 \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
 \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
 \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
-\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
 \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
 \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
 \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
@@ -80,7 +94,7 @@
 \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
 \newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
 \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
-\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
 \newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
 \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
 \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
@@ -193,6 +207,7 @@
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
+
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
@@ -202,7 +217,6 @@
 \urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
   pdftitle={A tutorial on Generalised Additive Mixed Effects Models for bilingualism research},
-  pdfauthor={Stefano Coretta, Joseph V. Casillas},
   colorlinks=true,
   linkcolor={blue},
   filecolor={Maroon},
@@ -210,15 +224,45 @@
   urlcolor={Blue},
   pdfcreator={LaTeX via pandoc}}
 
+
 \title{A tutorial on Generalised Additive Mixed Effects Models for
 bilingualism research}
-\author{Stefano Coretta, Joseph V. Casillas}
+\author{}
 \date{}
 
 \begin{document}
 \maketitle
 
-\subsection{Motivation}\label{motivation}
+
+Stefano Coretta (Linguistics and English Language, University of
+Edinburgh, UK)
+
+Joseph V. Casillas (Rutgers University, USA)
+
+\textbf{ABSTRACT}
+
+While recent years have seen a shift towards random effects modelling,
+particularly in areas of linguistics in which nested structure is the
+norm (e.g., trial repetitions nested within participants), an
+over-reliance on standard linear modelling prevails, particularly in the
+cases of dynamic phenomena that may not constitute a linear
+relationship, e.g., vowel trajectories, pitch contours, acquisition
+processes, etc. Generalised Additive (Mixed) Models (GAMMs) are now
+commonly employed in phonetic research (given the naturally dynamic
+nature of speech data) and this is reflected by the availability of
+several tutorials which focus on phonetic data. This tutorial aims at
+making GAMMs accessible to researchers from other fields within
+linguistics. In particular, this tutorial is written for researchers in
+bilingualism and multilingualism who wish to be able to start using
+GAMMs for non-linear data, which is very common in developmental and
+learning phenomena. While only the basics will be covered here, we hope
+that researchers will get the necessary foundations to be able to learn
+GAMMs from existing resources.
+
+\textbf{Keywords}: generalised additive mixed models; GAMMs; non-linear
+data; dynamic analysis.
+
+\section{Motivation}\label{motivation}
 
 In recent years quantitative analysis of linguistic data has benefited
 greatly from the now commonplace use of so-called random effects (also
@@ -242,7 +286,7 @@ mind researchers focusing on bi- and multilingualism who wish to start
 using GAMMs for non-linear data, which is common in developmental and
 learning phenomena.
 
-\subsubsection{Generalised additive (mixed)
+\subsection{Generalised additive (mixed)
 models}\label{generalised-additive-mixed-models}
 
 Generalised Additive Models (GAMs) and their mixed-effects version
@@ -271,7 +315,7 @@ Finally, we opted not to treat statistical significance testing in GAMMs
 (significance testing is treated in details in the aforementioned
 tutorials).
 
-\subsection{Pre-requisites}\label{pre-requisites}
+\section{Pre-requisites}\label{pre-requisites}
 
 In what follows, we detail the packages needed to complete the tutorial,
 followed by two specific case studies designed to illustrate how GAMMs
@@ -294,10 +338,10 @@ models with random effects. The following packages need to be installed:
 All the tutorial code and data are freely available here:
 \url{https://github.com/stefanocoretta/gamm_biling}.
 
-\subsection{Case study 1: U-shaped
+\section{Case study 1: U-shaped
 learning}\label{case-study-1-u-shaped-learning}
 
-\subsubsection{U-shaped learning}\label{u-shaped-learning}
+\subsection{U-shaped learning}\label{u-shaped-learning}
 
 Research on language acquisition first documented over-regularization
 errors in the 60's (Cazden, 1968; Ervin \& Miller, 1963). Subsequent
@@ -342,7 +386,7 @@ regress when learning new linguistic forms. Be that as it may, it is
 clear that the non-linear quality of this aspect of language learning
 requires a non-linear approach to modelling the underlying process.
 
-\subsubsection{The data}\label{the-data}
+\subsection{The data}\label{the-data}
 
 We have simulated data for accuracy scores from 200 language learners,
 taken at 10 different time points. Note that the simulated data follow a
@@ -407,7 +451,7 @@ scores on learning scores at a single time point, time point 5.
 Subsequently, we will analyse the entire data set to illustrate how to
 conduct a time-series analysis.
 
-\subsubsection{Modelling a non-linear
+\subsection{Modelling a non-linear
 effect}\label{modelling-a-non-linear-effect}
 
 Let's first focus on how to model a non-linear effect: here, we can look
@@ -564,7 +608,7 @@ proficiency on accuracy at a single time point for pedagogical purposes.
 In the following section we will expand our analysis by refitting the
 data including time as a predictor.
 
-\subsubsection{Multiple smooth terms}\label{multiple-smooth-terms}
+\subsection{Multiple smooth terms}\label{multiple-smooth-terms}
 
 As mentioned previously, the data \texttt{dat1} contains accuracy and
 proficiency scores from 200 subjects, taken at 10 time points. The data
@@ -619,7 +663,7 @@ scores.}
 
 \end{minipage}%
 
-\caption{\label{fig-d1-dag}Dyrected Acyclic Graphs for time, proficiency
+\caption{\label{fig-d1-dag}Directed Acyclic Graphs for time, proficiency
 and learning score.}
 
 \end{figure}%
@@ -794,7 +838,7 @@ using the fitted object to generate and plot predictions using
 report the resulting analysis. In the next section, we will consider
 vowel production in bilingual speech.
 
-\subsection{Case study 2: L2 vowel production in simultaneous and late
+\section{Case study 2: L2 vowel production in simultaneous and late
 bilinguals}\label{case-study-2-l2-vowel-production-in-simultaneous-and-late-bilinguals}
 
 To motivate our next example, we will now consider the production of
@@ -1151,7 +1195,7 @@ bilingual groups, thus suggesting that while there is less
 diphthongisation in the high-proficiency group, this group still hasn't
 developed simultaneous bilingual-like targets.
 
-\subsection{Summary}\label{summary}
+\section{Summary}\label{summary}
 
 This introductory tutorial covered the basics of fitting non-linear
 effects using Generalised Additive Models (GAMs) and the mixed-effects
@@ -1179,6 +1223,11 @@ al. (2016), and Wieling (2018). Important topics that were not covered
 here are: selection of type and number of basis functions in smooths,
 autocorrelation and autoregressive models, statistical inference and
 modelling other distribution families.
+
+\section{Data availability statement}\label{data-availability-statement}
+
+The compendium with code and data used in this tutorial can be found at
+\url{https://github.com/stefanocoretta/gamm_biling}.
 
 \newpage{}
 
@@ -1384,6 +1433,7 @@ likelihood estimation of semiparametric generalized linear models.
 3--36.
 
 \end{CSLReferences}
+
 
 
 

@@ -1,9 +1,9 @@
 ---
 title: "A tutorial on Generalised Additive Mixed Effects Models for bilingualism research"
-author: Stefano Coretta, Joseph V. Casillas
 format:
   pdf:
     keep-tex: true
+    number-sections: true
 editor: visual
 bibliography: gam_refs.bib
 csl: apa.csl
@@ -28,19 +28,29 @@ dat1 <- readRDS("data/dat1.rds")
 dat2 <- readRDS("data/dat2.rds")
 ```
 
-## Motivation
+Stefano Coretta (Linguistics and English Language, University of Edinburgh, UK)
+
+Joseph V. Casillas (Rutgers University, USA)
+
+**ABSTRACT**
+
+While recent years have seen a shift towards random effects modelling, particularly in areas of linguistics in which nested structure is the norm (e.g., trial repetitions nested within participants), an over-reliance on standard linear modelling prevails, particularly in the cases of dynamic phenomena that may not constitute a linear relationship, e.g., vowel trajectories, pitch contours, acquisition processes, etc. Generalised Additive (Mixed) Models (GAMMs) are now commonly employed in phonetic research (given the naturally dynamic nature of speech data) and this is reflected by the availability of several tutorials which focus on phonetic data. This tutorial aims at making GAMMs accessible to researchers from other fields within linguistics. In particular, this tutorial is written for researchers in bilingualism and multilingualism who wish to be able to start using GAMMs for non-linear data, which is very common in developmental and learning phenomena. While only the basics will be covered here, we hope that researchers will get the necessary foundations to be able to learn GAMMs from existing resources.
+
+**Keywords**: generalised additive mixed models; GAMMs; non-linear data; dynamic analysis.
+
+# Motivation
 
 In recent years quantitative analysis of linguistic data has benefited greatly from the now commonplace use of so-called random effects (also known as hierarchical, mixed-effects, multi-level or nested models, @winter2013; @winter2020). While this shift represents a clear improvement in statistical analyses, particularly in areas of linguistics in which nested structure is the norm (e.g., trial repetitions nested within participants), an over-reliance on standard linear modelling prevails, particularly in the cases of dynamic phenomena that may not constitute a linear relationship, e.g., vowel trajectories, pitch contours, acquisition processes, etc.
 
 Generalised Additive (Mixed) Models (GAMMs) are now commonly employed in phonetic research (given the naturally dynamic nature of speech data) and this is reflected by the availability of several tutorials which focus on phonetic data [@soskuthy2017; @soskuthy2021; @wieling2018; @tamminga2016], and biological data [@pedersen2019]. We hope that this tutorial will make GAMMs accessible to researchers from other fields within linguistics as well. In particular, this tutorial has in mind researchers focusing on bi- and multilingualism who wish to start using GAMMs for non-linear data, which is common in developmental and learning phenomena.
 
-### Generalised additive (mixed) models
+## Generalised additive (mixed) models
 
 Generalised Additive Models (GAMs) and their mixed-effects version (GAMMs) represent a variation of the generalised linear model that can accommodate modelling non-linear relationships [@hastie1986; @wood2006]. The main component specific to GAMMs is known as a smoother or smooth term. These are model terms that can fit non-linear effects. An advantage of using smooth terms is that they are constrained by a smoothing penalty parameter. Importantly, this penalty parameter is a standard part of the fitting procedure that does not depend on user input and can help prevent over-fitting the data. This approach is different from, for example, growth curve analyses which are based on user-specified polynomial degrees. Note, however, that under/over-fitting is still possible depending on the number of basis functions used in building the smoothers (for a more detailed explanation of basis functions, see the aforementioned tutorials).
 
 The rest of this tutorial focuses on applying GAMMs in bilingualism research using the statistical programming language R [@rct2023]. While completing this tutorial will allow you to jump-start into fitting basic GAMMs with the mgcv package [@wood2006, @wood2011], we invite interested readers to peruse the tutorials mentioned above to avoid unnecessary repetition of content here. Readers interested in a more detailed conceptual discussion of GAMMs are referred to @soskuthy2017. Finally, we opted not to treat statistical significance testing in GAMMs (significance testing is treated in details in the aforementioned tutorials).
 
-## Pre-requisites
+# Pre-requisites
 
 In what follows, we detail the packages needed to complete the tutorial, followed by two specific case studies designed to illustrate how GAMMs can be applied to model common phenomena in second language acquisition and bilingualism research.
 
@@ -54,15 +64,15 @@ This tutorial assumes readers are already familiar with R [@rct2023] and have at
 
 All the tutorial code and data are freely available here: <https://github.com/stefanocoretta/gamm_biling>.
 
-## Case study 1: U-shaped learning
+# Case study 1: U-shaped learning
 
-### U-shaped learning
+## U-shaped learning
 
 Research on language acquisition first documented over-regularization errors in the 60's [@ervin_miller1963; @cazden1968acquisition]. Subsequent research found that over-regularization errors tended to manifest in a developmental curve, and is now referred to as the *U-shaped developmental curve* [@williams2022u]. In most cases, U-shaped development is considered to be a three-step process, which begins with accurate performance, followed by a period in which performance dips, and then subsequently becomes accurate again [@carlucci2013necessity]. Interestingly, U-shaped curves are observed in numerous cognitive-developmental and learning contexts, particularly with regard to child development, e.g., understanding temperature, weight conservation, object permanence, and facial recognition [See @carlucci2013necessity], which, in turn, has fostered fruitful research and debate in Cognitive Science regarding learning models [e.g., @marcus1992overregularization; @rumelhart2014learning, among others].
 
 In first language acquisition research, the most cited example stems from children's use of the past tense [@ervin_miller1963; @cazden1968acquisition; @marcus1992overregularization]. For instance, @cazden1968acquisition found that children accurately produced irregular past tense verbs during a period of time, and, at a later point in time, began to produce over-generalization errors, e.g., *feet* followed by \**feets*. Eventually past tense production again surfaces as expected, typically around the age of three, which coincides with the developmental stage in which children acquire regular past tense verbs [See @marcus1992overregularization]. In the realm of Second Language Acquisition (SLA), researchers have documented non-linear, U-shaped courses of development in numerous areas for both developmental and instructional sequences [See @casani2020valutare; @kellerman1985if; @long1990least; @shirai1990u; @geeslin2006longitudinal; @pliatsikas2013processing; @williams2022u, among many others]. @kellerman1985if, for instance, documented Dutch learners of English acquiring verb alternation patterns of English following a U-shaped trajectory. In a similar vein, @lightbown1983exploring showed accuracy producing progressive forms (i.e., *-ing*) followed a U-shaped trajectory when acquiring the simple present/present continuous tense/aspect distinction in French speaking learners of English. U-shaped learning may be a by-product of reorganization or restructuring of prior knowledge [@gass_selinker_2008; @shirai1990u], and likely accounts for language instructors' contention that students often regress when learning new linguistic forms. Be that as it may, it is clear that the non-linear quality of this aspect of language learning requires a non-linear approach to modelling the underlying process.
 
-### The data
+## The data
 
 We have simulated data for accuracy scores from 200 language learners, taken at 10 different time points. Note that the simulated data follow a Gaussian (normal) distribution for pedagogical reasons, as it is a straightforward distribution to use when introducing readers to new statistical models. That being said, it is important to recognize that real learner's data 'in the wild' is seldom Gaussian. A proficiency score was also included for each participant at each time point. The data is intended to simulate a study in which participants perform the same learning task and proficiency assessment in a longitudinal design. We print the first six rows of the data frame below. Note that text following a \\# symbol is a comment and intended to aid the reader in understanding the code.
 
@@ -96,7 +106,7 @@ dat1 |>
 
 In the following sections we will analyse this data using GAMMs. For pedagogical purposes, we will first focus on the effect of proficiency scores on learning scores at a single time point, time point 5. Subsequently, we will analyse the entire data set to illustrate how to conduct a time-series analysis.
 
-### Modelling a non-linear effect
+## Modelling a non-linear effect
 
 Let's first focus on how to model a non-linear effect: here, we can look at the effect of the proficiency score on learner accuracy. As we have seen in @fig-dat1, the effect is U-shaped, i.e. it is not linear. To simplify, we will begin our analysis using data from a single time point. Later we will expand the analysis to also include time as a predictor. We model a non-linear effect of proficiency on accuracy with the following code.
 
@@ -151,7 +161,7 @@ If we were to report this model and interpret the results, we could write someth
 
 We began our analysis with a simplified model examining the effect of proficiency on accuracy at a single time point for pedagogical purposes. In the following section we will expand our analysis by refitting the data including time as a predictor.
 
-### Multiple smooth terms
+## Multiple smooth terms
 
 As mentioned previously, the data `dat1` contains accuracy and proficiency scores from 200 subjects, taken at 10 time points. The data was simulated so that proficiency increased over time (at different degrees for different participants), as is often the case in language acquisition processes. An interesting question to consider is whether learning scores improve with time independently of proficiency, or if proficiency alone is causing learning scores to improve. We can approach this question using principles of causal inference. To this end, we develop directed acyclic graphs (DAGs) to describe the causal relationships involved. Though a full treatment of causal inference is beyond the scope of this paper, we believe the DAG is informative in aiding understanding of the model we will build. Readers interested in a deep dive into causal inference and DAGs are referred to @mcelreath2019 and @pearl2010introduction.
 
@@ -159,7 +169,7 @@ The DAGs in @fig-d1-dag represent the causal relationships between accuracy, pro
 
 ```{r}
 #| label: fig-d1-dag
-#| fig-cap: "Dyrected Acyclic Graphs for time, proficiency and learning score."
+#| fig-cap: "Directed Acyclic Graphs for time, proficiency and learning score."
 #| fig-subcap:
 #| - "No direct effect of time on learning scores."
 #| - "Direct effect of time on learning scores."
@@ -263,7 +273,7 @@ We could report this model like so: We fitted a Generalised Additive Model to le
 
 In this example, we examined u-shaped development in second language acquisition. Specifically, we explored a simulated data set and fit a series of models, increasing in complexity. Our modelling strategy was outlined *a priori* using a DAG. We illustrated how to incorporate non-linear effects into the model via smoothing terms using the function `s()` inside the call to `gam()`. Next, we focused on using the fitted object to generate and plot predictions using `predict_gam()` and, finally, we walked through how one can report the resulting analysis. In the next section, we will consider vowel production in bilingual speech.
 
-## Case study 2: L2 vowel production in simultaneous and late bilinguals
+# Case study 2: L2 vowel production in simultaneous and late bilinguals
 
 To motivate our next example, we will now consider the production of Spanish vowels in three groups of bilinguals: simultaneous/native English/Spanish bilinguals (henceforth `es`) and late learners of Spanish with low and high levels of proficiency, `es_0` and `es_1`, respectively. Spanish has five phonemic vowels, /i, e, a, o, u/, and is often described as being a syllable-timed language in which the spectral envelope is rather stable and stressed and unstressed syllables have approximately the same duration. Though there is evidence that unstressed vowels can centralize to a certain degree, the differences between stressed and unstressed vowels are believed to be imperceptible [@martinez_celdran_1984]. American English, on the other hand, has a larger vowel inventory and is often described as a stress-timed language in which the duration between stressed syllables is approximately the same. Vowel reduction can occur in unstressed syllables, which typically manifests via shortening and/or centralization, with unstressed vowels often reducing to schwa ([ə]). Accordingly, English speaking learners of Spanish face a substantial obstacle when it comes to producing and perceiving Spanish vowels [See @aldrich2014acquisition; @cobb2009pronunciacion; @cobb2015adult; @bland2016speech; @iruela1997adquisicion, among others]. To wit, they often display cross-linguistic influence by producing unstressed Spanish vowels with \[ə\], particularly in the case of /a/, e.g., "casa" (Eng. *house*) as \[ka.sə\], and diphthongizing vowels in final position [@cobb2015adult].
 
@@ -393,7 +403,7 @@ The simultaneous English/Spanish bilingual data (group `es`) in @fig-gam-3 clear
 
 In the high-proficiency late English/Spanish bilinguals we can observe almost no reduction in /a/ (the EUD values are close to the simultaneous bilinguals' values and flat) and a lesser degree of reduction in /i/ and /u/, although the EUD value for the second part of the diphthongised vowels still don't quite reach the value of the simultaneous bilinguals. Moreover, the second part of /i/ and /u/ is very similar in both late bilingual groups, thus suggesting that while there is less diphthongisation in the high-proficiency group, this group still hasn't developed simultaneous bilingual-like targets.
 
-## Summary
+# Summary
 
 This introductory tutorial covered the basics of fitting non-linear effects using Generalised Additive Models (GAMs) and the mixed-effects counterpart Generalised Additive Mixed Models (GAMMs) with the mgcv and tidygam packages in R.
 
@@ -401,7 +411,10 @@ Two literature-based simulated case studies were employed to illustrate how to f
 
 This tutorial on its own will not be sufficient to develop an adequate GAM analysis but constitutes a low barrier-to-entry for readers who are interested in learning about GAMs. We encourage those who wish to run a full GAM analysis to peruse the tutorials mentioned in the introduction: @soskuthy2017, @soskuthy2021, @pedersen2019, @tamminga2016, and @wieling2018. Important topics that were not covered here are: selection of type and number of basis functions in smooths, autocorrelation and autoregressive models, statistical inference and modelling other distribution families.
 
+# Data availability statement
+
+The compendium with code and data used in this tutorial can be found at <https://github.com/stefanocoretta/gamm_biling>.
+
 {{< pagebreak >}}
 
 ## References
-
