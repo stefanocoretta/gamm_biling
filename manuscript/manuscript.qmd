@@ -1,6 +1,8 @@
 ---
 title: "A tutorial on Generalised Additive Mixed Effects Models for bilingualism research"
 format:
+  docx:
+    number-sections: true
   pdf:
     keep-tex: true
     number-sections: true
