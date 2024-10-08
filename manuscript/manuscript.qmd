@@ -32,7 +32,7 @@ dat2 <- readRDS("data/dat2.rds")
 
 Stefano Coretta (Linguistics and English Language, University of Edinburgh, UK)
 
-Joseph V. Casillas (Rutgers University, USA)
+Joseph V. Casillas (Department of Spanish and Portuguese, Rutgers University, USA)
 
 **ABSTRACT**
 
