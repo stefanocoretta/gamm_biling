@@ -120,15 +120,17 @@
 \makesavenoteenv{longtable}
 \usepackage{graphicx}
 \makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
-\makeatother
-% Scale images if necessary, so that they will not overflow the page
-% margins by default, and it is still possible to overwrite the defaults
-% using explicit options in \includegraphics[width, height, ...]{}
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
 % Set default figure placement to htbp
-\makeatletter
 \def\fps@figure{htbp}
 \makeatother
 % definitions for citeproc citations
@@ -208,9 +210,6 @@
 \@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
 
-\ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
-\fi
 \usepackage{bookmark}
 
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
@@ -437,7 +436,7 @@ increase again as proficiency increases.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-dat1-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-dat1-1.pdf}}
 
 }
 
@@ -514,7 +513,7 @@ GAMs more accessible.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-gam-1-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-gam-1-1.pdf}}
 
 }
 
@@ -642,7 +641,7 @@ effect on proficiency and directly through its effect on accuracy.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-d1-dag-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-d1-dag-1.pdf}}
 
 }
 
@@ -655,7 +654,7 @@ scores.}
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-d1-dag-2.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-d1-dag-2.pdf}}
 
 }
 
@@ -740,7 +739,11 @@ time point separately.
 \NormalTok{gam\_2\_preds }\OtherTok{\textless{}{-}} \FunctionTok{predict\_gam}\NormalTok{(}
 \NormalTok{  gam\_2, }\AttributeTok{length\_out =} \DecValTok{25}\NormalTok{,}
   \AttributeTok{series =} \StringTok{"proficiency"}\NormalTok{,}
-  \AttributeTok{exclude\_terms =} \FunctionTok{c}\NormalTok{(}\StringTok{"s(subj)"}\NormalTok{)}
+  \AttributeTok{exclude\_terms =} \FunctionTok{c}\NormalTok{(}\StringTok{"s(subj)"}\NormalTok{),}
+  \CommentTok{\# Need to pick a single value for excluded terms due to limitations of mgcv}
+  \CommentTok{\# Any value will work. Since the term is excluded, picking a specific value}
+  \CommentTok{\# has no effect on the predictions.}
+  \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\AttributeTok{subj =} \StringTok{"s1"}\NormalTok{)}
 \NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
@@ -756,7 +759,7 @@ time point separately.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-gam-2-preds-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-gam-2-preds-1.pdf}}
 
 }
 
@@ -771,7 +774,11 @@ of proficiency, from a GAM.}
 \NormalTok{gam\_2\_preds\_t }\OtherTok{\textless{}{-}} \FunctionTok{predict\_gam}\NormalTok{(}
 \NormalTok{  gam\_2, }\AttributeTok{length\_out =} \DecValTok{25}\NormalTok{,}
   \AttributeTok{series =} \StringTok{"time"}\NormalTok{,}
-  \AttributeTok{exclude\_terms =} \FunctionTok{c}\NormalTok{(}\StringTok{"s(subj)"}\NormalTok{)}
+  \AttributeTok{exclude\_terms =} \FunctionTok{c}\NormalTok{(}\StringTok{"s(subj)"}\NormalTok{),}
+  \CommentTok{\# Need to pick a single value for excluded terms due to limitations of mgcv}
+  \CommentTok{\# Any value will work. Since the term is excluded, picking a specific value}
+  \CommentTok{\# has no effect on the predictions.}
+  \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\AttributeTok{subj =} \StringTok{"s1"}\NormalTok{)}
 \NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
@@ -788,7 +795,7 @@ of proficiency, from a GAM.}
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-gam-2-preds-t-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-gam-2-preds-t-1.pdf}}
 
 }
 
@@ -929,7 +936,7 @@ increasing proficiency in Spanish.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-dat2-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-dat2-1.pdf}}
 
 }
 
@@ -1057,25 +1064,25 @@ Let's extract the model predictions and inspect them.
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# Get model predictions, assign them to object \textquotesingle{}gam\_3\_preds\textquotesingle{}}
-\NormalTok{gam\_3\_preds }\OtherTok{\textless{}{-}} \FunctionTok{predict\_gam}\NormalTok{(gam\_3, }\AttributeTok{exclude\_terms =} \StringTok{"s(timep,subj)"}\NormalTok{)}
+\NormalTok{gam\_3\_preds }\OtherTok{\textless{}{-}} \FunctionTok{predict\_gam}\NormalTok{(gam\_3, }\AttributeTok{exclude\_terms =} \StringTok{"s(timep,subj)"}\NormalTok{, }\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\AttributeTok{subj =} \StringTok{"es\_3"}\NormalTok{))}
 \NormalTok{gam\_3\_preds}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
-# A tibble: 99 x 6
-   group_vowel timep      eud      se  lower_ci upper_ci
-   <fct>       <dbl>    <dbl>   <dbl>     <dbl>    <dbl>
- 1 es.i          1    2.32    0.0155   2.29       2.35  
- 2 es.u          1    2.02    0.0155   1.99       2.05  
- 3 es.a          1    1.53    0.00809  1.52       1.55  
- 4 es_0.i        1    0.0930  0.0473   0.000345   0.186 
- 5 es_0.u        1    0.154   0.0476   0.0611     0.248 
- 6 es_0.a        1   -0.00855 0.0410  -0.0888     0.0717
- 7 es_1.i        1    1.10    0.0470   1.00       1.19  
- 8 es_1.u        1    1.45    0.0447   1.36       1.53  
- 9 es_1.a        1    1.28    0.0410   1.20       1.36  
-10 es.i          1.8  2.32    0.0139   2.30       2.35  
+# A tibble: 99 x 7
+   group_vowel timep subj       eud     se lower_ci[,1] upper_ci[,1]
+   <fct>       <dbl> <fct>    <dbl>  <dbl>        <dbl>        <dbl>
+ 1 es.i          1   es_3   2.32    0.0246       2.28         2.37  
+ 2 es.u          1   es_3   2.02    0.0246       1.97         2.07  
+ 3 es.a          1   es_3   1.53    0.0246       1.48         1.58  
+ 4 es_0.i        1   es_3   0.0930  0.0274       0.0394       0.147 
+ 5 es_0.u        1   es_3   0.154   0.0275       0.100        0.208 
+ 6 es_0.a        1   es_3  -0.00855 0.0246      -0.0568       0.0397
+ 7 es_1.i        1   es_3   1.10    0.0272       1.04         1.15  
+ 8 es_1.u        1   es_3   1.45    0.0261       1.39         1.50  
+ 9 es_1.a        1   es_3   1.28    0.0246       1.23         1.33  
+10 es.i          1.8 es_3   2.32    0.0241       2.28         2.37  
 # i 89 more rows
 \end{verbatim}
 
@@ -1105,6 +1112,7 @@ also extract more than 10 time points to get a smoother curve.
 \NormalTok{  gam\_3,}
   \AttributeTok{length\_out =} \DecValTok{25}\NormalTok{,}
   \AttributeTok{exclude\_terms =} \StringTok{"s(timep,subj)"}\NormalTok{,}
+  \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\AttributeTok{subj =} \StringTok{"es\_1"}\NormalTok{),}
   \AttributeTok{separate =} \FunctionTok{list}\NormalTok{(}\AttributeTok{group\_vowel =} \FunctionTok{c}\NormalTok{(}\StringTok{"group"}\NormalTok{, }\StringTok{"vowel"}\NormalTok{))}
 \NormalTok{)}
 \NormalTok{gam\_3\_preds\_2}
@@ -1112,19 +1120,19 @@ also extract more than 10 time points to get a smoother curve.
 \end{Shaded}
 
 \begin{verbatim}
-# A tibble: 234 x 7
-   group vowel timep      eud      se  lower_ci upper_ci
-   <chr> <chr> <dbl>    <dbl>   <dbl>     <dbl>    <dbl>
- 1 es    i      1     2.32    0.0155   2.29       2.35  
- 2 es    u      1     2.02    0.0155   1.99       2.05  
- 3 es    a      1     1.53    0.00809  1.52       1.55  
- 4 es_0  i      1     0.0930  0.0473   0.000345   0.186 
- 5 es_0  u      1     0.154   0.0476   0.0611     0.248 
- 6 es_0  a      1    -0.00855 0.0410  -0.0888     0.0717
- 7 es_1  i      1     1.10    0.0470   1.00       1.19  
- 8 es_1  u      1     1.45    0.0447   1.36       1.53  
- 9 es_1  a      1     1.28    0.0410   1.20       1.36  
-10 es    i      1.32  2.32    0.0148   2.30       2.35  
+# A tibble: 234 x 8
+   group vowel timep subj       eud     se lower_ci[,1] upper_ci[,1]
+   <chr> <chr> <dbl> <fct>    <dbl>  <dbl>        <dbl>        <dbl>
+ 1 es    i      1    es_1   2.32    0.0246       2.28         2.37  
+ 2 es    u      1    es_1   2.02    0.0246       1.97         2.07  
+ 3 es    a      1    es_1   1.53    0.0246       1.48         1.58  
+ 4 es_0  i      1    es_1   0.0930  0.0274       0.0394       0.147 
+ 5 es_0  u      1    es_1   0.154   0.0275       0.100        0.208 
+ 6 es_0  a      1    es_1  -0.00855 0.0246      -0.0568       0.0397
+ 7 es_1  i      1    es_1   1.10    0.0272       1.04         1.15  
+ 8 es_1  u      1    es_1   1.45    0.0261       1.39         1.50  
+ 9 es_1  a      1    es_1   1.28    0.0246       1.23         1.33  
+10 es    i      1.32 es_1   2.32    0.0244       2.28         2.37  
 # i 224 more rows
 \end{verbatim}
 
@@ -1147,7 +1155,7 @@ default. Now we can plot the predictions.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-gam-3-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-gam-3-1.pdf}}
 
 }
 

@@ -198,7 +198,7 @@ predict_gam(
   length_out = 25,
   separate = list(group_vowel_o = c("group", "vowel")),
   exclude_terms = c("s(timep,subj)", "s(timep,subj):vowel_oi", "s(timep,subj):vowel_ou"),
-  values = list(vowel_o = "a")
+  values = list(vowel_o = "a", subj = "es_1")
 ) %>%
   plot(series = "timep", comparison = "vowel") +
   facet_grid(cols = vars(group))

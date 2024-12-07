@@ -239,7 +239,11 @@ Now we plot the model predictions of accuracy score by proficiency and time poin
 gam_2_preds <- predict_gam(
   gam_2, length_out = 25,
   series = "proficiency",
-  exclude_terms = c("s(subj)")
+  exclude_terms = c("s(subj)"),
+  # Need to pick a single value for excluded terms due to limitations of mgcv
+  # Any value will work. Since the term is excluded, picking a specific value
+  # has no effect on the predictions.
+  values = c(subj = "s1")
 )
 ```
 
@@ -256,7 +260,11 @@ plot(gam_2_preds)
 gam_2_preds_t <- predict_gam(
   gam_2, length_out = 25,
   series = "time",
-  exclude_terms = c("s(subj)")
+  exclude_terms = c("s(subj)"),
+  # Need to pick a single value for excluded terms due to limitations of mgcv
+  # Any value will work. Since the term is excluded, picking a specific value
+  # has no effect on the predictions.
+  values = c(subj = "s1")
 )
 ```
 
@@ -366,7 +374,7 @@ Let's extract the model predictions and inspect them.
 ```{r}
 #| label: gam-3-preds
 # Get model predictions, assign them to object 'gam_3_preds'
-gam_3_preds <- predict_gam(gam_3, exclude_terms = "s(timep,subj)")
+gam_3_preds <- predict_gam(gam_3, exclude_terms = "s(timep,subj)", values = c(subj = "es_3"))
 gam_3_preds
 ```
 
@@ -381,6 +389,7 @@ gam_3_preds_2 <- predict_gam(
   gam_3,
   length_out = 25,
   exclude_terms = "s(timep,subj)",
+  values = c(subj = "es_1"),
   separate = list(group_vowel = c("group", "vowel"))
 )
 gam_3_preds_2

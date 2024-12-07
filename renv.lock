@@ -1366,9 +1366,14 @@
     },
     "tidygam": {
       "Package": "tidygam",
-      "Version": "0.2.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
+      "Version": "0.2.0.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "stefanocoretta",
+      "RemoteRepo": "tidygam",
+      "RemoteRef": "devel",
+      "RemoteSha": "988961b763d3352f9702218daa1421a95ffefd05",
       "Requirements": [
         "R",
         "cli",
@@ -1384,7 +1389,7 @@
         "tidyr",
         "tidyselect"
       ],
-      "Hash": "bc097ea0baf85a9d88a08ee90c095928"
+      "Hash": "2fff81f61c79d42a7386855b1d3901ed"
     },
     "tidyr": {
       "Package": "tidyr",
